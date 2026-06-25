@@ -4,15 +4,13 @@
   <img src="docs/hero.svg" alt="Straps — keep AI on your design system rails" width="860">
 </p>
 
-![ci](https://github.com/OWNER/straps/actions/workflows/ci.yml/badge.svg)
+[![ci](https://github.com/YilannDong/strap/actions/workflows/ci.yml/badge.svg)](https://github.com/YilannDong/strap/actions/workflows/ci.yml)
 
 **An enforcement layer for Claude Code + Figma.**
 4 skills that keep AI-generated UI on your Design System rails. Components stay linked, tokens
 stay bound, nothing goes off-spec.
 
-**[Live demo →](https://OWNER.github.io/straps/)** · the no-build component gallery.
-
-> Replace `OWNER` in the badge + demo URLs with your GitHub org/user after forking.
+**[Live demo →](https://YilannDong.github.io/strap/)** · the no-build component gallery.
 
 Straps is inspired by [claude2figma](https://github.com/senlindesign/claude2figma) but adds a
 real teeth: a zero-dependency **validation engine** and a **PostToolUse hook that actually blocks
@@ -108,7 +106,7 @@ The hook in `.claude/settings.json` activates automatically in Claude Code.
 ## Quickstart (60 seconds, no install)
 
 ```bash
-git clone https://github.com/OWNER/straps && cd straps
+git clone https://github.com/YilannDong/strap && cd strap
 node --test test/                  # tests pass on Node 18+
 node scripts/straps.mjs audit      # sample library validates clean against the DS
 node scripts/straps.mjs tokens     # (re)generate src/styles/tokens.css
