@@ -243,6 +243,14 @@ python3 scripts/preview-server.py 5173     # → http://127.0.0.1:5173
 
 Set any rule to `"off"` to disable, `"warn"` to advise, `"error"` to block.
 
+## Status & roadmap
+
+- ✅ **Enforcement engine** — validate / audit / blocking hook, tested + CI on Node 18/20/22.
+- ✅ **Token + component import** from a DTCG-style design system (`straps import`).
+- 🔜 **Live Figma round-trip** — pulling tokens/components and linking code↔Figma via Code Connect
+  is wired through the skills but not yet demonstrated end-to-end (needs a Figma plan with MCP
+  budget). The turn-key runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
+
 ## Requirements
 
 - Node 18+ (the engine is pure Node ESM, no dependencies).

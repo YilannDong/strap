@@ -193,7 +193,9 @@ This is driven by the straps-preflight skill, which uses the Figma MCP:
   2. get_libraries + search_design_system -> registry.json (components)
   3. get_code_connect_map   -> code-connect.json (figma node <-> code)
 
-Run the skill, or wire these tools yourself, then validate with: straps audit`);
+Run the skill, or wire these tools yourself, then validate with: straps audit
+
+Full bidirectional runbook (pull + Code Connect link-back): docs/figma-roundtrip.md`);
 }
 
 // ---- dispatch ----------------------------------------------------------------
