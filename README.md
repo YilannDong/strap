@@ -6,7 +6,9 @@
 4 skills that keep AI-generated UI on your Design System rails. Components stay linked, tokens
 stay bound, nothing goes off-spec.
 
-> Replace `OWNER` in the badge URL with your GitHub org/user after forking.
+**[Live demo →](https://OWNER.github.io/straps/)** · the no-build component gallery.
+
+> Replace `OWNER` in the badge + demo URLs with your GitHub org/user after forking.
 
 Straps is inspired by [claude2figma](https://github.com/senlindesign/claude2figma) but adds a
 real teeth: a zero-dependency **validation engine** and a **PostToolUse hook that actually blocks
