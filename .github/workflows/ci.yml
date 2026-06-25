@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # The engine + tests are zero-dependency, so no install step is needed.
+      - name: Unit + CLI tests
+        run: node --test test/
+      - name: Audit the sample library against the DS
+        run: node scripts/straps.mjs audit
+      - name: Verify token codegen is committed & up to date
+        run: |
+          node scripts/straps.mjs tokens
+          git diff --exit-code src/styles/tokens.css \
+            || (echo "::error::src/styles/tokens.css is stale — run 'node scripts/straps.mjs tokens' and commit." && exit 1)

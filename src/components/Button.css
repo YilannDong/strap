@@ -1,0 +1,48 @@
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  border: 0;
+  border-radius: var(--radius-button);
+  font-family: var(--font-body);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: var(--motion-fast);
+}
+
+.ds-btn--sm { padding: var(--space-8) var(--space-12); }
+.ds-btn--md { padding: var(--space-16); }
+.ds-btn--lg { padding: var(--space-16) var(--space-24); }
+
+/* brand = electric mint, with black text per the DS */
+.ds-btn--primary {
+  background: var(--mint);
+  color: var(--black);
+}
+.ds-btn--primary:hover { filter: brightness(0.96); }
+
+.ds-btn--secondary {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.ds-btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+}
+
+.ds-btn--danger {
+  background: var(--danger);
+  color: var(--white);
+}
+
+.ds-btn:disabled {
+  background: var(--line);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.ds-btn__icon { display: inline-flex; }

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*scripts/straps.mjs*)",
+      "Bash(node \"$CLAUDE_PROJECT_DIR/scripts/straps.mjs\"*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/straps.mjs\" check"
+          }
+        ]
+      }
+    ]
+  }
+}

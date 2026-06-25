@@ -1,0 +1,21 @@
+# dependencies / build
+node_modules/
+dist/
+build/
+.DS_Store
+*.log
+
+# Private / licensed design systems — NEVER publish these.
+# Your real DS source + licensed fonts live here; regenerate artifacts with:
+#   node scripts/straps.mjs import private/<your-ds>
+private/
+
+# Per-machine working source (your own DS import lands here). The committed
+# default artifacts are generated from examples/starter instead.
+.straps/source/
+
+# Local-only design briefs
+.straps/briefs/*.local.md
+
+# Per-machine Claude Code settings (permissions allowlist, etc.)
+.claude/settings.local.json

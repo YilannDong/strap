@@ -1,0 +1,36 @@
+{
+  "$meta": {
+    "name": "Straps Starter · Components",
+    "tokens": "design-tokens.json",
+    "aliasSyntax": "Values like {color.mint} resolve against design-tokens.json.",
+    "note": "Minimal component layer for the starter. Mirrors src/components/."
+  },
+  "components": {
+    "button": {
+      "element": "button",
+      "description": "Primary action. Brand mint with black text.",
+      "style": { "background": "{color.mint}", "color": "{color.black}", "borderRadius": "{radius.button}", "fontFamily": "{font.body}", "transition": "{motion.fast}" },
+      "variants": { "secondary": {}, "ghost": {}, "danger": { "background": "{color.danger}", "color": "{color.white}" } }
+    },
+    "input": {
+      "element": "input",
+      "description": "Labelled text field with error state.",
+      "style": { "border": "1.5px solid {color.line}", "borderRadius": "{radius.button}", "background": "{color.white}", "color": "{color.ink}", "fontFamily": "{font.body}" }
+    },
+    "card": {
+      "element": "div",
+      "description": "Surface container, optional elevation.",
+      "style": { "background": "{color.white}", "border": "1px solid {color.line}", "borderRadius": "{radius.card}", "boxShadow": "{shadow.md}" }
+    },
+    "badge": {
+      "element": "span",
+      "description": "Status pill.",
+      "style": { "borderRadius": "{radius.pill}", "fontFamily": "{font.body}" },
+      "variants": {
+        "neutral": { "background": "{color.surface3}", "color": "{color.ink3}" },
+        "success": { "background": "{color.mint}", "color": "{color.black}" },
+        "danger": { "background": "{color.dangerTint}", "color": "{color.dangerInk}" }
+      }
+    }
+  }
+}

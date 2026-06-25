@@ -1,0 +1,16 @@
+.ds-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.ds-card--md { padding: var(--space-16); }
+.ds-card--lg { padding: var(--space-24); }
+
+.ds-card--elevated {
+  border-color: transparent;
+  box-shadow: var(--shadow-md);
+}

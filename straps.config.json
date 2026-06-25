@@ -1,0 +1,18 @@
+{
+  "$schema": "./.straps/config.schema.json",
+  "include": ["**/*.{js,jsx,ts,tsx,css,scss,vue,svelte}"],
+  "exclude": ["**/node_modules/**", "**/.straps/**", "**/dist/**", "**/build/**"],
+  "artifacts": ".straps",
+  "rules": {
+    "rawHex": "error",
+    "rawRgb": "error",
+    "rawFont": "error",
+    "offScaleSpacing": "warn",
+    "offScaleRadius": "warn",
+    "unlinkedComponent": "error"
+  },
+  "allow": {
+    "colors": ["transparent", "currentColor", "inherit", "none"],
+    "spacingPx": [0, 1]
+  }
+}

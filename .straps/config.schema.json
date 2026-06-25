@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Straps config",
+  "type": "object",
+  "properties": {
+    "include": { "type": "array", "items": { "type": "string" } },
+    "exclude": { "type": "array", "items": { "type": "string" } },
+    "artifacts": { "type": "string", "description": "Directory holding tokens.json, registry.json, code-connect.json" },
+    "rules": {
+      "type": "object",
+      "description": "Severity per rule: 'error' (blocks the write), 'warn', or 'off'.",
+      "properties": {
+        "rawHex": { "enum": ["error", "warn", "off"] },
+        "rawRgb": { "enum": ["error", "warn", "off"] },
+        "rawFont": { "enum": ["error", "warn", "off"] },
+        "offScaleSpacing": { "enum": ["error", "warn", "off"] },
+        "offScaleRadius": { "enum": ["error", "warn", "off"] },
+        "unlinkedComponent": { "enum": ["error", "warn", "off"] }
+      }
+    },
+    "allow": {
+      "type": "object",
+      "properties": {
+        "colors": { "type": "array", "items": { "type": "string" } },
+        "spacingPx": { "type": "array", "items": { "type": "number" } }
+      }
+    }
+  }
+}

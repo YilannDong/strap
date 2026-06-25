@@ -1,0 +1,25 @@
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ds-badge--neutral {
+  background: var(--surface-3);
+  color: var(--ink-3);
+}
+.ds-badge--success {
+  background: var(--mint);
+  color: var(--black);
+}
+.ds-badge--danger {
+  background: var(--danger-tint);
+  color: var(--danger-ink);
+}
