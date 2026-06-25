@@ -1,5 +1,9 @@
 # Straps
 
+<p align="center">
+  <img src="docs/hero.svg" alt="Straps — keep AI on your design system rails" width="860">
+</p>
+
 ![ci](https://github.com/OWNER/straps/actions/workflows/ci.yml/badge.svg)
 
 **An enforcement layer for Claude Code + Figma.**
