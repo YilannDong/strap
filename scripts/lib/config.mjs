@@ -89,7 +89,7 @@ export function loadConfig(root) {
   // Index primitive colors by normalized hex for fast lookup.
   cfg.colorByHex = new Map();
   for (const [token, value] of Object.entries(cfg.tokens.colors || {})) {
-    // First declaration of a hex wins, so top-level names (mint) beat nested ones (engine/signalFill).
+    // First declaration of a hex wins, so a top-level token beats a later nested duplicate.
     if (typeof value === 'string' && value.startsWith('#') && !cfg.colorByHex.has(normalizeHex(value))) {
       cfg.colorByHex.set(normalizeHex(value), token);
     }

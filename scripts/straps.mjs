@@ -134,7 +134,7 @@ function scaffold() {
 function tokenVarName(token) {
   return '--' + String(token)
     .replace(/([a-z])([A-Z])/g, '$1-$2')   // camelCase -> camel-Case
-    .replace(/([a-zA-Z])(\d)/g, '$1-$2')    // letter|digit boundary: mint700 -> mint-700
+    .replace(/([a-zA-Z])(\d)/g, '$1-$2')    // letter|digit boundary: blue700 -> blue-700
     .replace(/[^a-zA-Z0-9]+/g, '-')          // slashes/spaces/parens -> dash
     .replace(/^-+|-+$/g, '')
     .toLowerCase();

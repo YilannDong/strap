@@ -24,7 +24,7 @@ CI (`.github/workflows/ci.yml`) runs the tests + audit on Node 18/20/22 and fail
 | `scripts/lib/import.mjs` | DTCG-ish design-system importer |
 | `.claude/skills/*` | the 4 skills |
 | `.claude/settings.json` | the blocking PostToolUse hook |
-| `examples/starter/` | the open demo DS (Inter, fresh mint) |
+| `examples/starter/` | the open demo DS (Inter, confident blue) |
 
 ## Adding a rule
 

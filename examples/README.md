@@ -2,7 +2,7 @@
 
 ## `starter/` — the open demo design system
 
-A small, **openly-licensed** design system (Inter font + a fresh mint palette derived from
+A small, **openly-licensed** design system (Inter font + a confident blue palette derived from
 Tailwind-style values) used as the default for this repo. Safe to fork and ship.
 
 ```
