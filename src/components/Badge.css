@@ -16,8 +16,8 @@
   color: var(--ink-3);
 }
 .ds-badge--success {
-  background: var(--mint);
-  color: var(--black);
+  background: var(--green-tint);
+  color: var(--green-ink);
 }
 .ds-badge--danger {
   background: var(--danger-tint);

@@ -6,16 +6,15 @@
       "source": ".straps/source/components.starter.json",
       "layer": "Straps Starter · Components",
       "element": "button",
-      "description": "Primary action. Brand mint with black text.",
+      "description": "Primary action. Brand blue with white text.",
       "variants": [
         "secondary",
         "ghost",
         "danger"
       ],
       "consumes": [
-        "color.black",
+        "color.blue",
         "color.danger",
-        "color.mint",
         "color.white",
         "font.body",
         "motion.fast",
@@ -63,11 +62,11 @@
         "danger"
       ],
       "consumes": [
-        "color.black",
         "color.dangerInk",
         "color.dangerTint",
+        "color.greenInk",
+        "color.greenTint",
         "color.ink3",
-        "color.mint",
         "color.surface3",
         "font.body",
         "radius.pill"

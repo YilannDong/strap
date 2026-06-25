@@ -3,16 +3,174 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Straps — sample library</title>
+    <title>straps — keep AI on your design system rails</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="./src/styles/tokens.css" />
+    <link rel="stylesheet" href="./src/components/Button.css" />
+    <link rel="stylesheet" href="./src/components/Input.css" />
+    <link rel="stylesheet" href="./src/components/Card.css" />
+    <link rel="stylesheet" href="./src/components/Badge.css" />
+    <style>
+      :root { --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--white);
+        color: var(--ink);
+        font-family: var(--font-body);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        /* faint blueprint rail running down the left margin */
+        background-image: linear-gradient(90deg, var(--linesoft) 0 1px, transparent 1px 100%);
+        background-size: 100% 100%;
+        background-position: 32px 0;
+        background-repeat: no-repeat;
+      }
+      .wrap { max-width: 720px; margin: 0 auto; padding: 56px 28px 80px; }
+
+      /* ---- header / wordmark ---- */
+      .top { display: flex; align-items: baseline; gap: 12px; }
+      .mark { width: 30px; height: 22px; flex: none; align-self: center; }
+      .mark .rail { fill: var(--ink); }
+      .mark .tie { fill: var(--blue); }
+      .word { font-weight: 900; font-size: 26px; letter-spacing: -0.04em; }
+      .ver { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: auto; align-self: center; }
+      .tagline {
+        margin: 18px 0 0; font-size: 19px; line-height: 1.35; font-weight: 500;
+        max-width: 30ch; letter-spacing: -0.01em;
+      }
+      .tagline em { font-style: normal; color: var(--ink); border-bottom: 2px solid var(--blue); padding-bottom: 1px; }
+      .sub { margin: 14px 0 0; color: var(--ink-3); max-width: 56ch; font-size: 14.5px; }
+      .rule { height: 1px; background: var(--line); border: 0; margin: 40px 0; }
+
+      /* ---- section headers, spec-sheet style ---- */
+      .sec { display: flex; align-items: baseline; gap: 10px; margin: 0 0 18px; }
+      .sec .no { font-family: var(--mono); font-size: 12px; color: var(--blue-700); font-weight: 700; }
+      .sec h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+      .sec .note { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: auto; }
+
+      .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+      /* ---- the terminal moment: enforcement actually firing ---- */
+      .term {
+        background: var(--ink); color: #d6d8db; border-radius: var(--radius-card);
+        font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+        padding: 18px 20px; overflow-x: auto; box-shadow: var(--shadow-lg);
+      }
+      .term .cmd { color: var(--ink-3); }
+      .term .cmd::before { content: "$ "; color: var(--blue); }
+      .term .block { color: var(--danger); font-weight: 700; }
+      .term .file { color: #d6d8db; }
+      .term .strike { color: #ff8a8a; text-decoration: line-through; }
+      .term .fix { color: var(--blue); }
+      .term .dim { color: var(--ink-3); }
+
+      /* ---- token spec list ---- */
+      .tokens { border: 1px solid var(--line); border-radius: var(--radius-card); overflow: hidden; }
+      .tk { display: grid; grid-template-columns: 26px 1fr auto; align-items: center; gap: 14px; padding: 9px 14px; }
+      .tk + .tk { border-top: 1px solid var(--linesoft); }
+      .tk .chip { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--line); }
+      .tk .name { font-family: var(--mono); font-size: 12.5px; }
+      .tk .hex { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+
+      footer { margin-top: 56px; color: var(--ink-3); font-size: 13px; line-height: 1.6; }
+      footer .by { font-family: var(--mono); font-size: 11px; }
+      a { color: var(--blue-700); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div class="wrap">
+      <div class="top">
+        <svg class="mark" viewBox="0 0 30 22" fill="none" aria-hidden="true">
+          <rect class="rail" x="1" y="3" width="28" height="3.4" rx="1.7" />
+          <rect class="rail" x="1" y="15.6" width="28" height="3.4" rx="1.7" />
+          <rect class="tie" x="6" y="6.4" width="3" height="9.2" rx="1.5" />
+          <rect class="tie" x="21" y="6.4" width="3" height="9.2" rx="1.5" />
+        </svg>
+        <span class="word">straps</span>
+        <span class="ver">v0.1 · live preview</span>
+      </div>
+
+      <p class="tagline">AI builds fast and quietly drifts off-spec. Straps <em>holds the line</em>.</p>
+      <p class="sub">
+        An enforcement layer for Claude&nbsp;Code + Figma. Every swatch and component below is
+        bound to a token in <code style="font-family:var(--mono)">.straps/tokens.json</code> —
+        rendered straight from the generated CSS, no build step. Hardcode a hex and the hook
+        bounces the write.
+      </p>
+
+      <hr class="rule" />
+
+      <div class="sec"><span class="no">01</span><h2>What it catches</h2><span class="note">PostToolUse · blocks the write</span></div>
+      <div class="term">
+        <div class="cmd">straps check  src/components/PriceTag.css</div>
+        <div>&nbsp;</div>
+        <div class="block">⛔ Straps blocked this write — 2 Design System violations:</div>
+        <div>&nbsp;</div>
+        <div>&nbsp;&nbsp;background: <span class="strike">#2D6CF0</span> &nbsp;<span class="dim">→ use:</span> <span class="fix">var(--blue)</span></div>
+        <div>&nbsp;&nbsp;font-family: <span class="strike">Helvetica</span> <span class="dim">→ not in the type system (Inter)</span></div>
+        <div>&nbsp;</div>
+        <div class="dim">Bind values to tokens, then re-apply. Rails held.</div>
+      </div>
+
+      <hr class="rule" />
+
+      <div class="sec"><span class="no">02</span><h2>Components, on the rails</h2><span class="note">from .straps/registry.json</span></div>
+      <div class="row" style="margin-bottom:20px">
+        <button class="ds-btn ds-btn--primary ds-btn--md">Ship it</button>
+        <button class="ds-btn ds-btn--secondary ds-btn--md">Secondary</button>
+        <button class="ds-btn ds-btn--ghost ds-btn--md">Ghost</button>
+        <button class="ds-btn ds-btn--danger ds-btn--md">Revert</button>
+        <button class="ds-btn ds-btn--primary ds-btn--md" disabled>Disabled</button>
+      </div>
+      <div class="row" style="margin-bottom:24px">
+        <span class="ds-badge ds-badge--success">On-spec</span>
+        <span class="ds-badge ds-badge--neutral">Draft</span>
+        <span class="ds-badge ds-badge--danger">Blocked</span>
+      </div>
+
+      <div class="ds-card ds-card--elevated ds-card--lg" style="max-width:380px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Account settings</strong>
+          <span class="ds-badge ds-badge--success">On-spec</span>
+        </div>
+        <label class="ds-field">
+          <span class="ds-field__label">Display name</span>
+          <input class="ds-input ds-input--md" placeholder="Yilan Dong" />
+        </label>
+        <label class="ds-field">
+          <span class="ds-field__label">Email</span>
+          <input class="ds-input ds-input--md ds-input--error" placeholder="you@example.com" />
+          <span class="ds-field__error">Email already in use</span>
+        </label>
+        <div class="row">
+          <button class="ds-btn ds-btn--ghost ds-btn--md">Cancel</button>
+          <button class="ds-btn ds-btn--primary ds-btn--md">Save changes</button>
+        </div>
+      </div>
+
+      <hr class="rule" />
+
+      <div class="sec"><span class="no">03</span><h2>Tokens</h2><span class="note">the source of truth</span></div>
+      <div class="tokens">
+        <div class="tk"><span class="chip" style="background:var(--blue)"></span><span class="name">blue</span><span class="hex">#2563EB · brand</span></div>
+        <div class="tk"><span class="chip" style="background:var(--blue-700)"></span><span class="name">blue700</span><span class="hex">#1D4ED8</span></div>
+        <div class="tk"><span class="chip" style="background:var(--ink)"></span><span class="name">ink</span><span class="hex">#111827 · text</span></div>
+        <div class="tk"><span class="chip" style="background:var(--ink-3)"></span><span class="name">ink3</span><span class="hex">#6B7280 · muted</span></div>
+        <div class="tk"><span class="chip" style="background:var(--line)"></span><span class="name">line</span><span class="hex">#E5E7EB · border</span></div>
+        <div class="tk"><span class="chip" style="background:var(--danger)"></span><span class="name">danger</span><span class="hex">#EF4444</span></div>
+        <div class="tk"><span class="chip" style="background:var(--warn)"></span><span class="name">warn</span><span class="hex">#FBBF24</span></div>
+      </div>
+
+      <footer>
+        <p>Swap in your own system: <code style="font-family:var(--mono)">straps import private/my-ds</code> → everything above re-skins to your brand.</p>
+        <p class="by">built with straps · holding the line since commit one</p>
+      </footer>
+    </div>
   </body>
 </html>

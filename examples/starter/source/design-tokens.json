@@ -2,19 +2,22 @@
   "$meta": {
     "name": "Straps Starter · Design Tokens",
     "mode": "light",
-    "brand": "Open starter (Inter, fresh mint) — MIT, safe to fork",
-    "aliasSyntax": "{group.key} references resolve against this file (e.g. {color.mint}, {radius.card}).",
+    "brand": "Open starter (Inter, confident blue) — MIT, safe to fork",
+    "aliasSyntax": "{group.key} references resolve against this file (e.g. {color.blue}, {radius.card}).",
     "fontNote": "Inter (OFL) named first with system fallbacks; no font binaries shipped."
   },
   "color": {
-    "mint": "#4FE39B",
-    "mint50": "#ECFDF5",
-    "mint100": "#D1FAE5",
-    "mint200": "#A7F3D0",
-    "mint300": "#6EE7B7",
-    "mint500": "#34D399",
-    "mint700": "#047857",
-    "mint900": "#064E3B",
+    "blue": "#2563EB",
+    "blue50": "#EFF6FF",
+    "blue100": "#DBEAFE",
+    "blue200": "#BFDBFE",
+    "blue300": "#93C5FD",
+    "blue500": "#3B82F6",
+    "blue700": "#1D4ED8",
+    "blue900": "#1E3A8A",
+    "green": "#16A34A",
+    "greenTint": "#DCFCE7",
+    "greenInk": "#166534",
     "black": "#000000",
     "ink": "#111827",
     "ink2": "#374151",
@@ -38,7 +41,7 @@
     "progressTrack": "#E5E7EB"
   },
   "gradient": {
-    "hero": "linear-gradient(180deg,#A7F3D0 0%,#4FE39B 100%)"
+    "hero": "linear-gradient(180deg,#BFDBFE 0%,#2563EB 100%)"
   },
   "font": {
     "display": "\"Inter\", system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",

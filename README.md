@@ -2,9 +2,9 @@
 
 ![ci](https://github.com/OWNER/straps/actions/workflows/ci.yml/badge.svg)
 
-**An enforcement layer for Claude Code + Claude design + Figma.**
-4 skills that keep AI on your Design System rails. Components stay linked, tokens stay bound,
-nothing goes off-spec.
+**An enforcement layer for Claude Code + Figma.**
+4 skills that keep AI-generated UI on your Design System rails. Components stay linked, tokens
+stay bound, nothing goes off-spec.
 
 > Replace `OWNER` in the badge URL with your GitHub org/user after forking.
 
@@ -13,6 +13,37 @@ real teeth: a zero-dependency **validation engine** and a **PostToolUse hook tha
 off-spec writes** — enforcement, not just instructions to the model.
 
 ---
+
+## Who it's for
+
+Straps is for you if **an AI agent writes UI in your repo and you have a design system you want it
+to respect.** Concretely:
+
+- **Design-system teams / design engineers** tired of catching `#3b82f6` and one-off `padding:
+  17px` in PR review — Straps blocks it at write time instead.
+- **Front-end teams using Claude Code** (or similar agents) on a codebase with design tokens and a
+  component library, who want generated UI to stay on-brand without babysitting every diff.
+- **Teams with a Figma → code pipeline** who want tokens and components to stay linked in both
+  directions.
+- **Solo builders / "vibe coders"** shipping AI-generated apps who want one source of visual truth
+  so the product doesn't drift into ten shades of blue.
+
+### Who it's *not* for
+
+Be honest with yourself before adopting it:
+
+- **No design system yet.** If you have no tokens/components, there's nothing to enforce. Start a
+  token file first (the `examples/starter` system is a fine seed), *then* add Straps.
+- **Not using AI to generate UI.** Straps' edge is the agent-blocking hook. If humans write all
+  the CSS and a `stylelint`/`eslint` rule + code review already keep you honest, that may be
+  enough — Straps overlaps.
+- **Native mobile (Swift/Kotlin) or non-web UI.** The scanner targets web files
+  (`css/scss/js/jsx/ts/tsx/vue/svelte`). It won't read Swift or Compose.
+- **Creative / bespoke / marketing one-offs** where going off-system *is* the point. Rails are the
+  wrong tool for art direction.
+- **You want a full token build system.** Straps enforces and does light CSS-var codegen; it is
+  not a Style Dictionary replacement for transforming tokens across many platforms. Use both.
+- **Backend / CLI / data projects** with no UI surface.
 
 ## Why it's different
 
@@ -48,7 +79,7 @@ edit a file ──▶ PostToolUse hook ──▶ scripts/straps.mjs check
               no errors                                       errors
                  │                                               │
               write OK                              exit 2 + reasons to Claude
-                                                 (raw #hex → use color/brand/primary)
+                                                   (raw #2563eb → use var(--blue))
                                                   Claude fixes, re-applies
 ```
 
@@ -81,13 +112,56 @@ The repo ships with the open **`examples/starter`** design system already import
 is green out of the box. Then point it at *your* system — see
 [Importing an existing design system](#importing-an-existing-design-system).
 
-## Usage in Claude Code
+## How to use it
 
-1. Open the project in Claude Code, share your Figma file: *"let's start"* → **straps-preflight**
-   syncs tokens + components into `.straps/`.
-2. Build: *"add a settings page"* → **straps-compose** reuses registry components; **straps-bind**
-   keeps values on tokens. The hook blocks anything off-spec.
-3. Audit anytime: `node scripts/straps.mjs audit`
+**Mental model:** Straps is not a tool you *run* all day. It's a guard that sits in your repo and
+watches. You set it up once, then build normally — and it stops anything off-spec before it lands.
+There are really just three moments:
+
+### ① Set it up (once)
+
+Get the files into your project (drop-in or plugin, above), then point Straps at your design
+system:
+
+```bash
+node scripts/straps.mjs import private/my-ds   # your tokens + component specs → .straps/
+node scripts/straps.mjs tokens                 # → src/styles/tokens.css (the CSS vars to bind to)
+```
+
+No design system yet? The repo ships `examples/starter` already imported, so you can try it
+immediately and swap in yours later.
+
+### ② Build normally (you do nothing)
+
+Work in Claude Code as usual — just talk. The skills fire by context and the hook enforces on
+every edit. A real exchange:
+
+```
+You:   "Add a price tag to the product card."
+Claude: writes PriceTag.css with  background: #3b82f6
+Straps: ⛔ blocked — #3b82f6 is off-spec → use var(--blue)
+Claude: rewrites it as  background: var(--blue)   ✅
+You:    said nothing. The drift was caught and fixed before you saw it.
+```
+
+The four skills cover the rest of the loop:
+- *"let's start"* / paste a Figma URL → **straps-preflight** syncs tokens + components.
+- *"build a settings page"* → **straps-compose** reuses registry components; **straps-bind** keeps
+  values on tokens.
+- *share a screenshot/URL* → **straps-intake** maps it onto your tokens instead of pixel-copying.
+
+### ③ Sweep the whole repo (when you want)
+
+```bash
+node scripts/straps.mjs audit       # validate everything against the DS
+npm test                            # run the rule tests (Node 18+)
+```
+
+That's the entire surface: **set up once → build → the hook holds the line → audit on demand.**
+Swap design systems with one `straps import` and the whole UI re-skins.
+
+> The automatic blocking in ② needs **Node on your PATH** (`brew install node`) so the hook can run
+> locally. Without it, enforcement still runs in CI and via `audit`, just not on every keystroke.
 
 ## Token architecture
 
@@ -97,12 +171,12 @@ Straps follows the W3C DTCG / Material-3 model — **primitives → semantic →
   hex against these and tells you the token to use instead.
 - **Semantic** (optional `tokens.json` `semantic.color`): intent tokens that reference a
   primitive *by name*, never a raw value. When present, the codegen emits
-  `--brand-default: var(--mint);` and the validator suggests the **semantic** token over the
+  `--brand-default: var(--blue);` and the validator suggests the **semantic** token over the
   bare primitive — steering you to intent.
 - **Component** (`registry.json`): each component + the tokens it consumes, built by `import`
   from your `components.*.json`. This is the library-first layer the skills reuse.
 
-The `examples/starter` system uses a flat **functional** palette (`mint`, `ink`, `line`,
+The `examples/starter` system uses a flat **functional** palette (`blue`, `ink`, `line`,
 `danger`…) — already intent-named, so it skips the separate semantic tier. Add a `semantic`
 block to your tokens when your primitives are pure palette steps (`blue/600`).
 

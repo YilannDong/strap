@@ -8,8 +8,8 @@
   "components": {
     "button": {
       "element": "button",
-      "description": "Primary action. Brand mint with black text.",
-      "style": { "background": "{color.mint}", "color": "{color.black}", "borderRadius": "{radius.button}", "fontFamily": "{font.body}", "transition": "{motion.fast}" },
+      "description": "Primary action. Brand blue with white text.",
+      "style": { "background": "{color.blue}", "color": "{color.white}", "borderRadius": "{radius.button}", "fontFamily": "{font.body}", "transition": "{motion.fast}" },
       "variants": { "secondary": {}, "ghost": {}, "danger": { "background": "{color.danger}", "color": "{color.white}" } }
     },
     "input": {
@@ -28,7 +28,7 @@
       "style": { "borderRadius": "{radius.pill}", "fontFamily": "{font.body}" },
       "variants": {
         "neutral": { "background": "{color.surface3}", "color": "{color.ink3}" },
-        "success": { "background": "{color.mint}", "color": "{color.black}" },
+        "success": { "background": "{color.greenTint}", "color": "{color.greenInk}" },
         "danger": { "background": "{color.dangerTint}", "color": "{color.dangerInk}" }
       }
     }

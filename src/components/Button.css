@@ -16,12 +16,12 @@
 .ds-btn--md { padding: var(--space-16); }
 .ds-btn--lg { padding: var(--space-16) var(--space-24); }
 
-/* brand = electric mint, with black text per the DS */
+/* brand = confident blue, white text for contrast */
 .ds-btn--primary {
-  background: var(--mint);
-  color: var(--black);
+  background: var(--blue);
+  color: var(--white);
 }
-.ds-btn--primary:hover { filter: brightness(0.96); }
+.ds-btn--primary:hover { background: var(--blue-700); }
 
 .ds-btn--secondary {
   background: var(--surface-3);
