@@ -213,11 +213,18 @@ node scripts/straps.mjs tokens --stdout # print instead
 The generated file is auto-exempted from scanning (it's the one place raw hex/rgba/shadows
 legitimately live). Everything else must reference `var(--color-brand-primary)` etc.
 
-## Sample library (working demo)
+## Sample library + live preview
 
-`src/` ships a token-bound component library that mirrors `.straps/registry.json` —
-`Button`, `Input`, `Card`, `Badge` — plus `src/App.tsx`, a screen built the Straps way.
-It audits 100% clean; edit any value to a raw hex and watch the hook bounce it.
+`src/components/` ships token-bound React components (`Button`, `Input`, `Card`, `Badge`) plus
+`src/App.tsx`, a screen built the Straps way — reference code that audits 100% clean. Edit any
+value to a raw hex and watch the hook bounce it.
+
+`index.html` is a **no-build static gallery** of the same components (CSS only, no bundler). Open
+it directly, or serve it with the launch config:
+
+```bash
+python3 scripts/preview-server.py 5173     # → http://127.0.0.1:5173
+```
 
 ## Config
 

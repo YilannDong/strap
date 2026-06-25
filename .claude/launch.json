@@ -6,12 +6,6 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["scripts/preview-server.py", "5173"],
       "port": 5173
-    },
-    {
-      "name": "Straps sample library (Vite, needs Node 18+)",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 5174
     }
   ]
 }

@@ -17,7 +17,7 @@ export default function App() {
         <Badge variant="success">Active</Badge>
       </header>
 
-      <Input label="Display name" placeholder="Yilan Dong" />
+      <Input label="Display name" placeholder="Ada Lovelace" />
       <Input label="Email" placeholder="you@example.com" error="Email already in use" />
 
       <footer style={{ display: 'flex', gap: 'var(--space-12)' }}>
