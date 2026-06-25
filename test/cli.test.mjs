@@ -27,5 +27,5 @@ test('validate exits non-zero on an off-spec file', () => {
 
 test('tokens codegen emits the brand variable', () => {
   const out = run(['tokens', '--stdout']);
-  assert.match(out, /--mint:\s*#4FE39B/);
+  assert.match(out, /--blue:\s*#2563EB/);
 });

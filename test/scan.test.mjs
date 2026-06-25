@@ -9,10 +9,10 @@ const rules = (file, text) => scan(file, text).map((v) => v.rule);
 const find = (file, text, rule) => scan(file, text).find((v) => v.rule === rule);
 
 test('flags a hardcoded hex that duplicates a token and suggests it', () => {
-  const v = find('a.css', '.x{color:#4FE39B}', 'rawHex');
+  const v = find('a.css', '.x{color:#2563EB}', 'rawHex');
   assert.ok(v, 'expected a rawHex violation');
   assert.equal(v.severity, 'error');
-  assert.equal(v.fix, 'mint'); // #4FE39B is the brand token in the starter
+  assert.equal(v.fix, 'blue'); // #2563EB is the brand token in the starter
 });
 
 test('flags an off-palette hex with no token suggestion', () => {
@@ -30,7 +30,7 @@ test('flags an off-system font family', () => {
 });
 
 test('allows tokens referenced via var(), $, tokens.* and {group.key} alias', () => {
-  assert.equal(scan('a.css', '.x{color:var(--mint)}').length, 0);
+  assert.equal(scan('a.css', '.x{color:var(--blue)}').length, 0);
   assert.equal(scan('a.css', '.x{font-family:{font.body}}').length, 0);
 });
 
