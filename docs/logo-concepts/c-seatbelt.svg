@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 280" width="220" height="280" fill="none" stroke="#1a1714" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="220" height="280" fill="#F6F0E2" stroke="none"/>
+
+  <!-- ===== TOP WEBBING ===== -->
+  <path d="M84 8 V96 M136 8 V96" />
+  <path d="M84 8 H136" stroke-width="2.4"/>
+  <!-- weave -->
+  <g stroke-width="0.9" stroke="#7a6f5e">
+    <path d="M94 10 V94 M104 10 V94 M114 10 V94 M124 10 V94"/>
+  </g>
+  <!-- edge stitching -->
+  <g stroke-width="1.4">
+    <path d="M88 18 h0 M88 30 h0 M88 42 h0 M88 54 h0 M88 66 h0 M88 78 h0"/>
+  </g>
+  <g stroke-width="1.6" stroke-dasharray="2 9"><path d="M89 12 V92 M131 12 V92"/></g>
+
+  <!-- ===== TONGUE (latch plate) ===== -->
+  <path d="M80 96 h60 a6 6 0 0 1 6 6 v34 h-72 v-34 a6 6 0 0 1 6 -6 z" fill="#F6F0E2"/>
+  <!-- slot in the tongue -->
+  <rect x="96" y="110" width="28" height="9" rx="4" fill="#fff"/>
+  <!-- tongue shading hatch -->
+  <g stroke-width="0.9"><path d="M120 126 h20 M116 132 h24 M124 120 h16"/></g>
+
+  <!-- ===== BUCKLE BODY (receptacle) ===== -->
+  <path d="M52 140 h116 a14 14 0 0 1 14 14 v50 a14 14 0 0 1 -14 14 h-116 a14 14 0 0 1 -14 -14 v-50 a14 14 0 0 1 14 -14 z" fill="#F6F0E2"/>
+  <!-- entry slot (tongue goes in) -->
+  <path d="M74 140 v-6 h72 v6" />
+  <rect x="74" y="140" width="72" height="10" rx="3" fill="#fff"/>
+  <!-- release button -->
+  <rect x="86" y="170" width="48" height="22" rx="11" fill="#fff"/>
+  <path d="M96 181 h28" stroke-width="2.4"/>
+  <!-- buckle shading: hatch lower-right -->
+  <g stroke-width="1" stroke="#1a1714">
+    <path d="M150 196 l14 -10 M150 204 l22 -16 M150 212 l30 -22 M134 214 l40 -30 M118 214 l30 -22"/>
+  </g>
+
+  <!-- ===== BOTTOM WEBBING ===== -->
+  <path d="M88 218 V272 M132 218 V272" />
+  <path d="M84 272 H136" stroke-width="2.4"/>
+  <g stroke-width="0.9" stroke="#7a6f5e"><path d="M98 220 V270 M108 220 V270 M118 220 V270 M126 220 V270"/></g>
+  <g stroke-width="1.6" stroke-dasharray="2 9"><path d="M92 222 V268 M128 222 V268"/></g>
+
+  <!-- ===== STIPPLE SHADING ===== -->
+  <g fill="#1a1714" stroke="none">
+    <circle cx="44" cy="208" r="1.4"/><circle cx="50" cy="214" r="1.4"/><circle cx="58" cy="210" r="1.2"/><circle cx="46" cy="200" r="1.2"/>
+    <circle cx="170" cy="206" r="1.4"/><circle cx="176" cy="212" r="1.4"/><circle cx="166" cy="214" r="1.2"/><circle cx="178" cy="200" r="1.2"/>
+    <circle cx="150" cy="132" r="1.2"/><circle cx="158" cy="136" r="1.2"/><circle cx="62" cy="132" r="1.2"/>
+    <circle cx="100" cy="208" r="1.1"/><circle cx="112" cy="210" r="1.1"/><circle cx="124" cy="208" r="1.1"/>
+  </g>
+</svg>
