@@ -42,10 +42,6 @@ are enough to start. Concretely:
 
 Be honest with yourself before adopting it:
 
-- **No tokens at all.** Strap enforces *what you've defined* — even just colors + type is enough —
-  but it needs *something*. With zero tokens there's nothing to check, so start a token file first
-  (the `examples/starter` system is a fine seed), *then* add Strap. (You do **not** need components
-  to begin.)
 - **Not using AI to generate UI.** Strap's edge is the agent-blocking hook. If humans write all
   the CSS and a `stylelint`/`eslint` rule + code review already keep you honest, that may be
   enough — Strap overlaps.
