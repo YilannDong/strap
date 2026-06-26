@@ -20,13 +20,19 @@ off-spec writes** — enforcement, not just instructions to the model.
 
 ## Who it's for
 
-Strap is for you if **an AI agent writes UI in your repo and you have a design system you want it
-to respect.** Concretely:
+Strap is for you if **an AI agent writes UI in your repo and you have *some* design system — even
+just tokens — you want it to respect.** You don't need a finished component library; colors + type
+are enough to start. Concretely:
 
 - **Design-system teams / design engineers** tired of catching `#3b82f6` and one-off `padding:
   17px` in PR review — Strap blocks it at write time instead.
-- **Front-end teams using Claude Code** (or similar agents) on a codebase with design tokens and a
-  component library, who want generated UI to stay on-brand without babysitting every diff.
+- **Front-end teams using Claude Code** (or similar agents) on a codebase with design tokens (a
+  component library is a bonus, not a requirement), who want generated UI to stay on-brand without
+  babysitting every diff.
+- **Teams early in their design system** — you've defined color + type tokens but your components
+  are still in flux. Strap enforces the tokens *now* and turns on the component rules later, as you
+  register them. (Each rule only activates once you've defined what it checks — see
+  [Scenarios](#scenarios).)
 - **Teams with a Figma → code pipeline** who want tokens and components to stay linked in both
   directions.
 - **Solo builders / "vibe coders"** shipping AI-generated apps who want one source of visual truth
@@ -36,8 +42,10 @@ to respect.** Concretely:
 
 Be honest with yourself before adopting it:
 
-- **No design system yet.** If you have no tokens/components, there's nothing to enforce. Start a
-  token file first (the `examples/starter` system is a fine seed), *then* add Strap.
+- **No tokens at all.** Strap enforces *what you've defined* — even just colors + type is enough —
+  but it needs *something*. With zero tokens there's nothing to check, so start a token file first
+  (the `examples/starter` system is a fine seed), *then* add Strap. (You do **not** need components
+  to begin.)
 - **Not using AI to generate UI.** Strap's edge is the agent-blocking hook. If humans write all
   the CSS and a `stylelint`/`eslint` rule + code review already keep you honest, that may be
   enough — Strap overlaps.
@@ -206,6 +214,22 @@ Swap design systems with one `strap import` and the whole UI re-skins.
 ## Scenarios
 
 How Strap behaves in the situations people actually worry about.
+
+### "I have tokens, but my components are still in flux"
+
+You're a fit — this is a great way to start. **Each rule only activates once you've defined what
+it checks**, so a partial design system enforces partially, with no false positives:
+
+| You've defined | Rule | Behavior |
+|---|---|---|
+| Colors | `rawHex` / `rawRgb` | **active** — hardcoded colors blocked |
+| Typography | `rawFont` | **active** — off-system fonts blocked |
+| *(no spacing/radius scale yet)* | `offScaleSpacing` / `offScaleRadius` | **dormant** until you add the scale |
+| *(empty registry)* | `unlinkedComponent` | **dormant** until you register components |
+
+So with **colors + type defined and components still being explored**, you get full color/font
+enforcement on day one, while the component layer stays quiet until you start registering. Strap
+enforces *what you've decided* and grows with the system — it never demands a finished one.
 
 ### "I want to add a new component"
 
