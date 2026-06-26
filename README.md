@@ -32,7 +32,7 @@ to respect.** Concretely:
 - **Solo builders / "vibe coders"** shipping AI-generated apps who want one source of visual truth
   so the product doesn't drift into ten shades of blue.
 
-### Who it's *not* for
+## Who it's *not* for
 
 Be honest with yourself before adopting it:
 
