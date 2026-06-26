@@ -104,14 +104,20 @@ hook keeps the code bound to it:
 
 The Figma value, the token, and the code can't drift apart — that's the loop.
 
-## The reverse: code → Figma
+## Full example: Claude Code → Figma
 
 The loop runs both ways. Strap can push an on-spec component **into** Figma — and it lands as
-design-system-bound design, not a detached rectangle with a baked-in hex. This Checkout card was
-**generated live from code** via the Figma MCP:
+design-system-bound design (instances + bound Variables), not a detached rectangle with a baked-in
+hex:
 
 <p align="center">
-  <img src="docs/figma-codegen.png" alt="A Checkout card with a blue Pay-now button, generated in Figma from code, with the fill bound to the color/blue Variable" width="320">
+  <img src="docs/code-to-figma.svg" alt="On-spec Button.tsx/Button.css using var(--blue) is pushed via use_figma; Strap maps var(--blue) to a color/blue Figma Variable and <Button/> to an instance; the result is a Checkout frame in Figma with the Pay-now fill bound to color/blue" width="100%">
+</p>
+
+And here it is **generated live** via the Figma MCP — the actual Figma render, not a mockup:
+
+<p align="center">
+  <img src="docs/figma-codegen.png" alt="A Checkout card with a blue Pay-now button, generated in Figma from code, fill bound to the color/blue Variable" width="300">
 </p>
 
 - The token set became real **Figma Variables** (`color/blue`, `ink`, `ink3`, `white`, `line`).
