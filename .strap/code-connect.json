@@ -1,4 +1,11 @@
 {
-  "_note": "Figma node <-> code component map. Populated by `strap sync` via the Figma MCP (get_code_connect_map). Empty until a Figma file with Code Connect is linked — the Starter-plan MCP quota / desktop-selection blocked this, so the component registry is currently sourced from .strap/source/components.*.json instead.",
-  "map": {}
+  "_note": "Figma node <-> code component map (Strap's local cache, read by the engine). Normally populated by `strap sync` via the Figma MCP. The entry below was recorded from a live code->Figma demo. NOTE: publishing to Figma's NATIVE Code Connect needs a Dev/Full seat on an Org/Enterprise plan; Strap's local cache works on any plan.",
+  "map": {
+    "1:11": {
+      "name": "Button",
+      "source": "src/components/Button.tsx",
+      "label": "React",
+      "figma": "https://www.figma.com/design/rKKRepInWNMjkD5QNxIxbi?node-id=1-11"
+    }
+  }
 }

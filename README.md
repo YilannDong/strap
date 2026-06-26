@@ -104,6 +104,23 @@ hook keeps the code bound to it:
 
 The Figma value, the token, and the code can't drift apart — that's the loop.
 
+## The reverse: code → Figma
+
+The loop runs both ways. Strap can push an on-spec component **into** Figma — and it lands as
+design-system-bound design, not a detached rectangle with a baked-in hex. This Checkout card was
+**generated live from code** via the Figma MCP:
+
+<p align="center">
+  <img src="docs/figma-codegen.png" alt="A Checkout card with a blue Pay-now button, generated in Figma from code, with the fill bound to the color/blue Variable" width="320">
+</p>
+
+- The token set became real **Figma Variables** (`color/blue`, `ink`, `ink3`, `white`, `line`).
+- The button's fill is **bound to `color/blue`** — change the Variable and the button follows,
+  exactly like `var(--blue)` does in code. (Not a hardcoded `#2563EB`.)
+- Strap caches the `Button ↔ Button.tsx` link in `.strap/code-connect.json`. *Publishing to
+  Figma's **native** Code Connect needs a Dev/Full seat on an Org/Enterprise plan — Strap's local
+  cache works on any plan.*
+
 ## Install
 
 **As a drop-in (any project):**
@@ -262,9 +279,11 @@ Set any rule to `"off"` to disable, `"warn"` to advise, `"error"` to block.
 
 - ✅ **Enforcement engine** — validate / audit / blocking hook, tested + CI on Node 18/20/22.
 - ✅ **Token + component import** from a DTCG-style design system (`strap import`).
-- 🔜 **Live Figma round-trip** — pulling tokens/components and linking code↔Figma via Code Connect
-  is wired through the skills but not yet demonstrated end-to-end (needs a Figma plan with MCP
-  budget). The turn-key runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
+- ✅ **Code → Figma** — generated a Checkout frame into Figma live via the MCP, with the token set
+  as bound **Figma Variables** (see above).
+- ⚠️ **Native Code Connect publish** needs a Dev/Full seat on an Org/Enterprise plan; Strap caches
+  the link locally in `.strap/code-connect.json` on any plan.
+- The turn-key bidirectional runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
 
 ## Requirements
 

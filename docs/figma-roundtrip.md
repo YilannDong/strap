@@ -4,11 +4,16 @@
 > consistent.** Tokens and components sync *from* Figma and enforce in code; code components link
 > *back* to their Figma masters via Code Connect. Run this when your Figma MCP isn't rate-limited.
 
-## Why this is separate from launch
+## Status
 
-The enforcement engine is proven (tests + CI + audit). What is **not** yet demonstrated end-to-end
-is the live Figma sync, because in development we hit two hard walls (see *Gotchas*). Everything
-below is written so you can execute it in one sitting without re-learning those walls.
+- ✅ **Enforcement engine** — proven (tests + CI + audit).
+- ✅ **Code → Figma generation** — proven live: a Checkout frame was generated into Figma via
+  `create_new_file` + `use_figma`, with the token set created as **bound Figma Variables** (the
+  button fill references `color/blue`, not a hardcoded hex). Screenshot in the README.
+- ◻️ **Figma → code via MCP** (`get_variable_defs` on a live selection) — still to run on a file
+  you own; the `strap import` path already covers the same outcome from an export.
+- ⚠️ **Native Code Connect publish** (`add_code_connect_map`) — requires a Dev/Full seat on an
+  **Org/Enterprise** plan. Strap caches the link locally in `.strap/code-connect.json` regardless.
 
 ## Preconditions
 
