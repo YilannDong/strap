@@ -344,6 +344,17 @@ Set any rule to `"off"` to disable, `"warn"` to advise, `"error"` to block.
   the link locally in `.strap/code-connect.json` on any plan.
 - The turn-key bidirectional runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
 
+**Exploring (not built yet):**
+
+- 🔭 **Duplicate radar (code)** — a heuristic, *advisory* (`warn`-only) rule that flags a new
+  element closely matching an existing registry component, to catch the case Strap misses today:
+  a hand-written `<div>` that *looks like* a `Callout` but isn't named one. Strap currently catches
+  only **named** re-declarations; semantic similarity is fuzzy by nature, so this would stay
+  advisory to keep the deterministic core trustworthy.
+- 🔭 **Figma-side duplicate detection** — Strap is code-side only; spotting duplicate *frames* in
+  Figma would need a separate plugin/MCP job. Likely to **integrate an existing Figma lint tool**
+  rather than rebuild it.
+
 ## Requirements
 
 - Node 18+ (the engine is pure Node ESM, **zero runtime dependencies**).
