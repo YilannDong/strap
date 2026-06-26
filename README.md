@@ -203,6 +203,39 @@ Swap design systems with one `strap import` and the whole UI re-skins.
 > The automatic blocking in ② needs **Node on your PATH** (`brew install node`) so the hook can run
 > locally. Without it, enforcement still runs in CI and via `audit`, just not on every keystroke.
 
+## Scenarios
+
+How Strap behaves in the situations people actually worry about.
+
+### "I want to add a new component"
+
+Strap **doesn't block new components** — they're explicit decisions, not forbidden moves.
+
+1. Build it as usual. The hook still enforces its values are tokens (`var(--blue)`, the spacing
+   scale, etc.) — a new component can't smuggle in raw hex.
+2. **strap-compose** surfaces it as a decision rather than inventing it silently: *"this needs a
+   new DS component — approve?"*
+3. Once approved, it's **added to the registry** (so the next person reuses it instead of
+   re-rolling a second copy) and **linked** to its Figma master via Code Connect.
+
+→ The new component becomes a first-class, reusable part of the system — cleanly.
+
+### "A component got created by accident"
+
+Nothing bad happens, and **it does not get auto-added to anything.**
+
+- **Strap never auto-registers.** The only things that write `.strap/registry.json` are explicit
+  syncs — `strap import` / `strap-preflight` — from your source of truth (the Figma published
+  library). The scanner only *reads* the registry; it can't grow it.
+- The stray component is just **ordinary code**: still token-checked, but never promoted into the
+  design system. It isn't falsely flagged either — the `unlinkedComponent` rule only fires when
+  you re-declare a component that *already* exists in the registry.
+- The registry is **generated, not accreted.** Re-running a sync rebuilds it from source, so junk
+  can't slowly pile up — the registry is always a mirror of your real DS, not a log of everything
+  ever written.
+
+→ Accidents stay as un-promoted code. The system only grows when you say so.
+
 ## Token architecture
 
 Strap follows the W3C DTCG / Material-3 model — **primitives → semantic → component**:
