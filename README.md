@@ -10,6 +10,8 @@
 4 skills + a blocking hook that keep AI-generated UI on your Design System rails — tokens stay
 bound, components stay reusable, and off-spec writes are blocked before they land.
 
+**[Live demo →](https://YilannDong.github.io/strap/)** · the no-build component gallery.
+
 Strap is inspired by [claude2figma](https://github.com/senlindesign/claude2figma) but adds a
 real teeth: a zero-dependency **validation engine** and a **PostToolUse hook that actually blocks
 off-spec writes** — enforcement, not just instructions to the model.
