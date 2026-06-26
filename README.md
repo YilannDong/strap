@@ -7,8 +7,8 @@
 [![ci](https://github.com/YilannDong/strap/actions/workflows/ci.yml/badge.svg)](https://github.com/YilannDong/strap/actions/workflows/ci.yml)
 
 **An enforcement layer for Claude Code + Figma.**
-4 skills that keep AI-generated UI on your Design System rails. Components stay linked, tokens
-stay bound, nothing goes off-spec.
+4 skills + a blocking hook that keep AI-generated UI on your Design System rails — tokens stay
+bound, components stay reusable, and off-spec writes are blocked before they land.
 
 **[Live demo →](https://YilannDong.github.io/strap/)** · the no-build component gallery.
 
@@ -33,8 +33,8 @@ are enough to start. Concretely:
   are still in flux. Strap enforces the tokens *now* and turns on the component rules later, as you
   register them. (Each rule only activates once you've defined what it checks — see
   [Scenarios](#scenarios).)
-- **Teams with a Figma → code pipeline** who want tokens and components to stay linked in both
-  directions.
+- **Teams with a Figma → code pipeline** who want design tokens to flow into code and components
+  to stay reusable — with Code Connect linking where their plan allows.
 - **Solo builders / "vibe coders"** shipping AI-generated apps who want one source of visual truth
   so the product doesn't drift into ten shades of blue.
 
