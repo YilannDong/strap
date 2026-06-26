@@ -9,6 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         node: [18, 20, 22]
     steps:
@@ -18,7 +19,10 @@ jobs:
           node-version: ${{ matrix.node }}
       # The engine + tests are zero-dependency, so no install step is needed.
       - name: Unit + CLI tests
-        run: node --test test/
+        # Pass explicit files — `node --test <dir>` isn't supported on Node 18.
+        run: |
+          node --version
+          node --test test/scan.test.mjs test/cli.test.mjs
       - name: Audit the sample library against the DS
         run: node scripts/strap.mjs audit
       - name: Verify token codegen is committed & up to date
