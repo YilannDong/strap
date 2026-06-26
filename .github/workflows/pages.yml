@@ -25,6 +25,7 @@ jobs:
         run: |
           mkdir -p _site/src/styles _site/src/components
           cp index.html _site/index.html
+          cp favicon.svg _site/favicon.svg
           cp src/styles/tokens.css _site/src/styles/
           cp src/components/*.css _site/src/components/
       - uses: actions/upload-pages-artifact@v3
