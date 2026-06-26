@@ -6,7 +6,7 @@ engine runs on plain Node (>=18) with no install step.
 ## Dev loop
 
 ```bash
-node --test test/                  # run the unit + CLI tests
+npm test                           # run the unit + CLI tests (Node 18+)
 node scripts/strap.mjs audit      # validate the sample library against the DS
 node scripts/strap.mjs tokens     # regenerate src/styles/tokens.css from tokens.json
 ```

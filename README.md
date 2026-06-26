@@ -61,7 +61,7 @@ Be honest with yourself before adopting it:
 | Token compliance | Asked of the model | **Scanned & blocked** (raw hex / rgb / off-scale px / off-system fonts) |
 | Components | "use instances" | Registry-backed; **redefining a DS component is blocked** |
 | QA | Prompt-level "verify" | `strap check` runs on every Edit/Write and **fails the write on errors** |
-| Linkage | — | Code Connect map cached in `.strap/`, kept in sync |
+| Linkage | — | Code Connect map cached in `.strap/` (synced on demand via `preflight`/`import`) |
 | Artifacts | Token Map / Registry (described) | **Machine-readable** `.strap/tokens.json`, `registry.json`, `code-connect.json` |
 | Config | — | `strap.config.json` — per-rule severity (`error`/`warn`/`off`) |
 
@@ -147,7 +147,7 @@ The hook in `.claude/settings.json` activates automatically in Claude Code.
 
 ```bash
 git clone https://github.com/YilannDong/strap && cd strap
-node --test test/                  # tests pass on Node 18+
+npm test                           # unit + CLI tests (Node 18+, zero deps)
 node scripts/strap.mjs audit      # sample library validates clean against the DS
 node scripts/strap.mjs tokens     # (re)generate src/styles/tokens.css
 ```
