@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 480" width="1240" height="480" font-family="Helvetica, Arial, sans-serif">
+  <rect x="1" y="1" width="1238" height="478" rx="20" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="2"/>
+
+  <text x="36" y="46" font-size="20" font-weight="800" fill="#111827" letter-spacing="-0.3">Full example · Figma → code</text>
+  <text x="36" y="70" font-size="14" fill="#6B7280">The Figma blue becomes a token becomes a CSS var — and the hook keeps the code on it.</text>
+
+  <!-- ============ PANEL 1 · FIGMA ============ -->
+  <rect x="36" y="92" width="356" height="316" rx="14" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <!-- figma window chrome -->
+  <path d="M36 106 a14 14 0 0 1 14 -14 h328 a14 14 0 0 1 14 14 v20 h-356 z" fill="#F1F5F9"/>
+  <circle cx="56" cy="106" r="4" fill="#CBD5E1"/><circle cx="70" cy="106" r="4" fill="#CBD5E1"/><circle cx="84" cy="106" r="4" fill="#CBD5E1"/>
+  <text x="214" y="110" text-anchor="middle" font-size="12" fill="#64748B" font-weight="600">Figma · Checkout</text>
+
+  <!-- design: a card with a blue button -->
+  <rect x="62" y="146" width="234" height="132" rx="12" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="80" y="174" font-size="11.5" fill="#6B7280" font-weight="700" letter-spacing="0.06em">CHECKOUT</text>
+  <text x="80" y="202" font-size="22" font-weight="800" fill="#111827">Total $48.00</text>
+  <rect x="80" y="222" width="198" height="40" rx="10" fill="#2563EB"/>
+  <text x="179" y="247" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Pay now</text>
+
+  <!-- variables inspector chip -->
+  <rect x="62" y="292" width="296" height="98" rx="10" fill="#F8FAFC" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="78" y="313" font-size="11" fill="#6B7280" font-weight="700" letter-spacing="0.05em">FIGMA VARIABLES</text>
+  <rect x="78" y="324" width="15" height="15" rx="4" fill="#2563EB"/>
+  <text x="104" y="336" font-size="12.5" font-family="ui-monospace, Menlo, monospace" fill="#374151">color/blue = #2563EB</text>
+  <text x="78" y="362" font-size="12.5" font-family="ui-monospace, Menlo, monospace" fill="#374151">radius/button = 12</text>
+  <text x="78" y="382" font-size="12.5" font-family="ui-monospace, Menlo, monospace" fill="#374151">font = Inter</text>
+
+  <!-- arrow 1 -->
+  <line x1="398" y1="250" x2="438" y2="250" stroke="#94A3B8" stroke-width="2"/>
+  <polygon points="438,245 448,250 438,255" fill="#94A3B8"/>
+  <text x="423" y="239" text-anchor="middle" font-size="10.5" fill="#2563EB" font-weight="700">import</text>
+
+  <!-- ============ PANEL 2 · TOKENS ============ -->
+  <rect x="456" y="92" width="330" height="316" rx="14" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="476" y="120" font-size="13" font-weight="700" fill="#111827" font-family="ui-monospace, Menlo, monospace">.strap/tokens.json</text>
+  <g font-family="ui-monospace, Menlo, monospace" font-size="12.5">
+    <text x="476" y="146" fill="#94A3B8">{</text>
+    <text x="492" y="166" fill="#374151">"colors": { "blue": <tspan fill="#2563EB">"#2563EB"</tspan> },</text>
+    <text x="492" y="186" fill="#374151">"radius": [<tspan fill="#2563EB">12</tspan>, …],</text>
+    <text x="492" y="206" fill="#374151">"fonts": [<tspan fill="#2563EB">"Inter"</tspan>]</text>
+    <text x="476" y="226" fill="#94A3B8">}</text>
+  </g>
+  <!-- strap tokens -->
+  <line x1="476" y1="246" x2="766" y2="246" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="621" y="266" text-anchor="middle" font-size="11" fill="#2563EB" font-weight="700" font-family="ui-monospace, Menlo, monospace">↓ strap tokens</text>
+  <rect x="472" y="278" width="298" height="112" rx="10" fill="#F8FAFC" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="488" y="300" font-size="12" font-weight="700" fill="#6B7280" font-family="ui-monospace, Menlo, monospace">src/styles/tokens.css</text>
+  <g font-family="ui-monospace, Menlo, monospace" font-size="12.5">
+    <text x="488" y="324" fill="#94A3B8">:root {</text>
+    <text x="504" y="346" fill="#374151">--blue: <tspan fill="#2563EB">#2563EB</tspan>;</text>
+    <text x="504" y="368" fill="#374151">--radius-button: <tspan fill="#2563EB">12px</tspan>;</text>
+    <text x="488" y="386" fill="#94A3B8">}</text>
+  </g>
+
+  <!-- arrow 2 -->
+  <line x1="792" y1="250" x2="832" y2="250" stroke="#94A3B8" stroke-width="2"/>
+  <polygon points="832,245 842,250 832,255" fill="#94A3B8"/>
+  <text x="816" y="239" text-anchor="middle" font-size="10.5" fill="#6B7280" font-weight="700">build</text>
+
+  <!-- ============ PANEL 3 · CODE + ENFORCEMENT ============ -->
+  <rect x="850" y="92" width="354" height="316" rx="14" fill="#0F172A"/>
+  <text x="872" y="120" font-size="13" font-weight="700" fill="#E2E8F0" font-family="ui-monospace, Menlo, monospace">Button.css</text>
+  <g font-family="ui-monospace, Menlo, monospace" font-size="12.5">
+    <text x="872" y="150" fill="#4ADE80">✓</text><text x="892" y="150" fill="#CBD5E1">background: <tspan fill="#60A5FA">var(--blue)</tspan>;</text>
+    <text x="872" y="174" fill="#4ADE80">✓</text><text x="892" y="174" fill="#CBD5E1">border-radius: <tspan fill="#60A5FA">var(--radius-button)</tspan>;</text>
+  </g>
+  <line x1="872" y1="196" x2="1182" y2="196" stroke="#1E293B" stroke-width="1.5"/>
+  <text x="872" y="224" font-size="12" fill="#64748B" font-family="ui-monospace, Menlo, monospace">— someone hardcodes a near-miss —</text>
+  <g font-family="ui-monospace, Menlo, monospace" font-size="12.5">
+    <text x="872" y="252" fill="#F87171">⛔</text><text x="896" y="252" fill="#CBD5E1">background: <tspan fill="#FCA5A5" text-decoration="line-through">#2D6CF0</tspan>;</text>
+  </g>
+  <rect x="872" y="270" width="310" height="106" rx="10" fill="#7F1D1D" fill-opacity="0.35" stroke="#B91C1C" stroke-width="1.5"/>
+  <text x="888" y="294" font-size="12.5" font-weight="700" fill="#FCA5A5" font-family="ui-monospace, Menlo, monospace">strap check — blocked</text>
+  <text x="888" y="320" font-size="12" fill="#E2E8F0" font-family="ui-monospace, Menlo, monospace">#2D6CF0 duplicates token "blue".</text>
+  <text x="888" y="342" font-size="12" fill="#E2E8F0" font-family="ui-monospace, Menlo, monospace">→ use <tspan fill="#60A5FA">var(--blue)</tspan>, then re-apply.</text>
+  <text x="888" y="364" font-size="12" fill="#4ADE80" font-family="ui-monospace, Menlo, monospace">Figma · token · code now agree.</text>
+</svg>

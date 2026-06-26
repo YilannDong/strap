@@ -38,7 +38,7 @@ Be honest with yourself before adopting it:
 
 - **No design system yet.** If you have no tokens/components, there's nothing to enforce. Start a
   token file first (the `examples/starter` system is a fine seed), *then* add Strap.
-- **Not using AI to generate UI.** Strap' edge is the agent-blocking hook. If humans write all
+- **Not using AI to generate UI.** Strap's edge is the agent-blocking hook. If humans write all
   the CSS and a `stylelint`/`eslint` rule + code review already keep you honest, that may be
   enough — Strap overlaps.
 - **Native mobile (Swift/Kotlin) or non-web UI.** The scanner targets web files
@@ -72,24 +72,37 @@ Be honest with yourself before adopting it:
 - **strap-intake** — turn a screenshot/URL/description into a token-aware Design Brief before
   building, so downstream work is already on-spec.
 
-## How enforcement works
+## How it works
 
-```
-edit a file ──▶ PostToolUse hook ──▶ scripts/strap.mjs check
-                                        │
-                       reads .strap/tokens.json + registry.json
-                                        │
-                 ┌──────────────────────┴───────────────────────┐
-              no errors                                       errors
-                 │                                               │
-              write OK                              exit 2 + reasons to Claude
-                                                   (raw #2563eb → use var(--blue))
-                                                  Claude fixes, re-applies
-```
+<p align="center">
+  <img src="docs/how-it-works.svg" alt="How Strap works: sync the design system once, then every edit is checked against the cached tokens and components" width="100%">
+</p>
+
+**In one sentence:** you sync your design system into a local cache (`.strap/`) once, then a
+PostToolUse hook runs `strap check` after **every** edit — passing on-spec writes and **blocking**
+off-spec ones with the exact line and the token to use, which Claude reads and fixes.
 
 The scanner (`scripts/lib/scan.mjs`) flags: hardcoded hex that duplicates or misses a token,
 `rgb()/rgba()` literals, fonts outside the type system, spacing/radius off the scale, and local
-re-declaration of a registry component.
+re-declaration of a registry component. Each rule's severity (`error` blocks, `warn` advises,
+`off` disables) is set in `strap.config.json`.
+
+## Full example: Figma → code
+
+A single value — the brand blue — travels from a Figma Variable to a token to a CSS var, and the
+hook keeps the code bound to it:
+
+<p align="center">
+  <img src="docs/figma-example.svg" alt="A Figma Checkout design with a blue button and a color/blue=#2563EB variable; strap import turns it into .strap/tokens.json and a --blue CSS variable; in Button.css var(--blue) passes while a hardcoded #2D6CF0 is blocked with 'use var(--blue)'" width="100%">
+</p>
+
+1. **Figma** defines `color/blue = #2563EB` (plus `radius/button`, `Inter`).
+2. **`strap import`** (or the **strap-preflight** skill) caches it in `.strap/tokens.json`, and
+   **`strap tokens`** emits `--blue: #2563EB` into `src/styles/tokens.css`.
+3. **Your component** binds to `var(--blue)` — and when someone hardcodes the near-miss `#2D6CF0`,
+   the hook **blocks the write**: *“duplicates token "blue" → use `var(--blue)`.”*
+
+The Figma value, the token, and the code can't drift apart — that's the loop.
 
 ## Install
 

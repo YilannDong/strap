@@ -1,6 +1,6 @@
 # Figma round-trip runbook — proving the loop
 
-> The one milestone left after launch. This proves Strap' headline: **design ⇄ code stays
+> The one milestone left after launch. This proves Strap's headline: **design ⇄ code stays
 > consistent.** Tokens and components sync *from* Figma and enforce in code; code components link
 > *back* to their Figma masters via Code Connect. Run this when your Figma MCP isn't rate-limited.
 

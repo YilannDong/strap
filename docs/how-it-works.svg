@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 430" width="1240" height="430" font-family="Helvetica, Arial, sans-serif">
+  <rect x="1" y="1" width="1238" height="428" rx="20" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="2"/>
+
+  <!-- title -->
+  <text x="36" y="48" font-size="20" font-weight="800" fill="#111827" letter-spacing="-0.3">How it works</text>
+  <text x="36" y="72" font-size="14" fill="#6B7280">Sync your design system once · then every edit is checked against it.</text>
+
+  <!-- ===== boxes ===== -->
+  <!-- B1 Figma -->
+  <rect x="36" y="104" width="188" height="150" rx="14" fill="#F8FAFC" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="130" y="150" text-anchor="middle" font-size="17" font-weight="700" fill="#111827">Figma DS</text>
+  <text x="130" y="176" text-anchor="middle" font-size="12.5" fill="#6B7280">variables</text>
+  <text x="130" y="196" text-anchor="middle" font-size="12.5" fill="#6B7280">components</text>
+  <text x="130" y="216" text-anchor="middle" font-size="12.5" fill="#6B7280">Code Connect</text>
+
+  <!-- arrow 1 -->
+  <line x1="228" y1="179" x2="270" y2="179" stroke="#94A3B8" stroke-width="2"/>
+  <polygon points="270,174 280,179 270,184" fill="#94A3B8"/>
+  <text x="254" y="168" text-anchor="middle" font-size="11" fill="#2563EB" font-weight="700">preflight</text>
+
+  <!-- B2 cache -->
+  <rect x="286" y="104" width="250" height="150" rx="14" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="411" y="142" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">.strap/ cache</text>
+  <g font-family="ui-monospace, Menlo, monospace" font-size="12.5" fill="#374151">
+    <text x="308" y="174">tokens.json</text>
+    <text x="308" y="198">registry.json</text>
+    <text x="308" y="222">code-connect.json</text>
+  </g>
+
+  <!-- arrow 2 -->
+  <line x1="540" y1="179" x2="582" y2="179" stroke="#94A3B8" stroke-width="2"/>
+  <polygon points="582,174 592,179 582,184" fill="#94A3B8"/>
+  <text x="566" y="168" text-anchor="middle" font-size="11" fill="#2563EB" font-weight="700">tokens</text>
+
+  <!-- B3 code -->
+  <rect x="598" y="104" width="196" height="150" rx="14" fill="#F8FAFC" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="696" y="142" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">Your code</text>
+  <g font-family="ui-monospace, Menlo, monospace" font-size="12.5">
+    <text x="696" y="176" text-anchor="middle" fill="#2563EB">var(--blue)</text>
+    <text x="696" y="200" text-anchor="middle" fill="#374151">&lt;Button/&gt;</text>
+  </g>
+  <text x="696" y="230" text-anchor="middle" font-size="11.5" fill="#6B7280">you + Claude build</text>
+
+  <!-- arrow 3 -->
+  <line x1="798" y1="179" x2="840" y2="179" stroke="#94A3B8" stroke-width="2"/>
+  <polygon points="840,174 850,179 840,184" fill="#94A3B8"/>
+  <text x="824" y="168" text-anchor="middle" font-size="11" fill="#6B7280" font-weight="700">save</text>
+
+  <!-- B4 hook -->
+  <rect x="856" y="104" width="190" height="150" rx="14" fill="#0F172A"/>
+  <text x="951" y="146" text-anchor="middle" font-size="15" font-weight="700" fill="#FFFFFF">PostToolUse</text>
+  <text x="951" y="170" text-anchor="middle" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#60A5FA">strap check</text>
+  <text x="951" y="206" text-anchor="middle" font-size="11.5" fill="#94A3B8">runs on every</text>
+  <text x="951" y="224" text-anchor="middle" font-size="11.5" fill="#94A3B8">Edit / Write</text>
+
+  <!-- arrow 4 -->
+  <line x1="1050" y1="179" x2="1086" y2="179" stroke="#94A3B8" stroke-width="2"/>
+  <polygon points="1086,174 1096,179 1086,184" fill="#94A3B8"/>
+
+  <!-- outcomes -->
+  <rect x="1100" y="110" width="118" height="60" rx="12" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+  <text x="1159" y="138" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">✓ on-spec</text>
+  <text x="1159" y="156" text-anchor="middle" font-size="11.5" fill="#166534">write lands</text>
+
+  <rect x="1100" y="188" width="118" height="60" rx="12" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.5"/>
+  <text x="1159" y="216" text-anchor="middle" font-size="13" font-weight="700" fill="#B91C1C">⛔ off-spec</text>
+  <text x="1159" y="234" text-anchor="middle" font-size="11.5" fill="#B91C1C">blocked</text>
+
+  <!-- feedback loop: blocked -> back to code -->
+  <path d="M1159 248 L1159 300 Q1159 312 1147 312 L708 312 Q696 312 696 300 L696 258"
+        fill="none" stroke="#EF4444" stroke-width="2" stroke-dasharray="5 4"/>
+  <polygon points="691,262 696,252 701,262" fill="#EF4444"/>
+  <text x="912" y="332" text-anchor="middle" font-size="12.5" fill="#B91C1C" font-weight="600">⛔ returns the offending line + the token to use → Claude fixes it and re-applies</text>
+
+  <!-- skills legend -->
+  <line x1="36" y1="364" x2="1204" y2="364" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="36" y="394" font-size="12.5" fill="#6B7280"><tspan font-weight="700" fill="#111827">4 skills:</tspan>  strap-preflight (sync) · strap-intake (turn references into briefs) · strap-compose (reuse components) · strap-bind (bind every value to a token)</text>
+</svg>
