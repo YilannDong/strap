@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const cli = join(root, 'scripts', 'straps.mjs');
+const cli = join(root, 'scripts', 'strap.mjs');
 const run = (args) => execFileSync('node', [cli, ...args], { cwd: root, encoding: 'utf8' });
 
 test('audit passes clean on the committed sample library', () => {

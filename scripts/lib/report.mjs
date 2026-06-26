@@ -1,4 +1,4 @@
-// Human + machine readable reporting for Straps.
+// Human + machine readable reporting for Strap.
 const C = {
   red: (s) => `\x1b[31m${s}\x1b[0m`,
   yellow: (s) => `\x1b[33m${s}\x1b[0m`,
@@ -33,5 +33,5 @@ export function formatSummary(fileResults) {
   const parts = [];
   parts.push(errors ? C.red(`${errors} error${errors === 1 ? '' : 's'}`) : C.green('0 errors'));
   parts.push(warns ? C.yellow(`${warns} warning${warns === 1 ? '' : 's'}`) : C.dim('0 warnings'));
-  return { errors, warns, line: `Straps QA: ${parts.join(', ')} across ${fileResults.length} file(s).` };
+  return { errors, warns, line: `Strap QA: ${parts.join(', ')} across ${fileResults.length} file(s).` };
 }

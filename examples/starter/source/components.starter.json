@@ -1,6 +1,6 @@
 {
   "$meta": {
-    "name": "Straps Starter · Components",
+    "name": "Strap Starter · Components",
     "tokens": "design-tokens.json",
     "aliasSyntax": "Values like {color.blue} resolve against design-tokens.json.",
     "note": "Minimal component layer for the starter. Mirrors src/components/."

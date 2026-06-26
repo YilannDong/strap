@@ -1,8 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node:*scripts/straps.mjs*)",
-      "Bash(node \"$CLAUDE_PROJECT_DIR/scripts/straps.mjs\"*)"
+      "Bash(node:*scripts/strap.mjs*)",
+      "Bash(node \"$CLAUDE_PROJECT_DIR/scripts/strap.mjs\"*)"
     ]
   },
   "hooks": {
@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/straps.mjs\" check"
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/strap.mjs\" check"
           }
         ]
       }

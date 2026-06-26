@@ -5,8 +5,8 @@ import { Card } from '@/components/Card';
 import { Badge } from '@/components/Badge';
 
 /**
- * Demo screen built the Straps way: every element is an INSTANCE of a registry
- * component, every value is a token. This file passes `straps audit` clean —
+ * Demo screen built the Strap way: every element is an INSTANCE of a registry
+ * component, every value is a token. This file passes `strap audit` clean —
  * compare it to what an unguided AI would emit (raw #hex, redefined Button, etc.).
  */
 export default function App() {

@@ -1,24 +1,24 @@
 ---
-name: straps-preflight
-description: Connect Claude Code to a Figma library and build the local Design System cache — a Token Map, Component Registry, and Code Connect map under .straps/ — so every later edit can be validated. Run this FIRST whenever a session starts working with Figma, when the user shares a Figma file/URL, when starting a new UI feature, or when tokens/components feel out of date. Trigger phrases: "let's start", "set up the design system", "sync Figma", a pasted figma.com URL.
+name: strap-preflight
+description: Connect Claude Code to a Figma library and build the local Design System cache — a Token Map, Component Registry, and Code Connect map under .strap/ — so every later edit can be validated. Run this FIRST whenever a session starts working with Figma, when the user shares a Figma file/URL, when starting a new UI feature, or when tokens/components feel out of date. Trigger phrases: "let's start", "set up the design system", "sync Figma", a pasted figma.com URL.
 ---
 
-# Straps Preflight — establish the rails
+# Strap Preflight — establish the rails
 
-You are the entry gate. Nothing else in Straps works until the Design System is cached
+You are the entry gate. Nothing else in Strap works until the Design System is cached
 and verified. Be fast and parallel; produce machine-readable artifacts, not prose.
 
 ## When to run
 - First Figma-related action of a session, or a pasted `figma.com` URL.
-- `.straps/tokens.json` / `registry.json` are empty, stale (`_source.syncedAt` old), or the
+- `.strap/tokens.json` / `registry.json` are empty, stale (`_source.syncedAt` old), or the
   user changed the Figma library.
 - The user says "let's start", "sync Figma", "set up the design system".
 
 ## Step 0 — make sure the project is initialized
-If there is no `straps.config.json`, run:
+If there is no `strap.config.json`, run:
 
 ```bash
-node "$CLAUDE_PROJECT_DIR/scripts/straps.mjs" init
+node "$CLAUDE_PROJECT_DIR/scripts/strap.mjs" init
 ```
 
 ## Step 1 — three parallel reads from Figma (do these in ONE message)
@@ -34,7 +34,7 @@ Before calling `use_figma`/`generate_*`, read the `/figma-use` skill (mandatory 
 ## Step 2 — write the cache (these power the enforcement engine)
 Overwrite the three artifacts. Keep keys exactly as the scanner expects:
 
-`.straps/tokens.json`
+`.strap/tokens.json`
 ```json
 {
   "_source": { "figmaFileKey": "<key>", "syncedAt": "<ISO date>" },
@@ -48,7 +48,7 @@ Overwrite the three artifacts. Keep keys exactly as the scanner expects:
 - `spacing` / `radius`: the allowed numeric scales (px).
 - `fonts`: every allowed font family.
 
-`.straps/registry.json`
+`.strap/registry.json`
 ```json
 { "components": [
   { "name": "Button", "figma": "Button (12:340)",
@@ -57,7 +57,7 @@ Overwrite the three artifacts. Keep keys exactly as the scanner expects:
 ] }
 ```
 
-`.straps/code-connect.json`
+`.strap/code-connect.json`
 ```json
 { "map": { "12:340": { "name": "Button", "source": "src/components/Button.tsx" } } }
 ```
@@ -67,7 +67,7 @@ variable is unresolved in Figma, leave it out and note it.
 
 ## Step 3 — verify the rails are live
 ```bash
-node "$CLAUDE_PROJECT_DIR/scripts/straps.mjs" audit
+node "$CLAUDE_PROJECT_DIR/scripts/strap.mjs" audit
 ```
 This proves the engine can read the artifacts and reports current drift. Then confirm the
 PostToolUse hook is wired in `.claude/settings.json` (it blocks off-spec writes automatically).
@@ -78,4 +78,4 @@ A short Design System summary:
 - component registry (N components, which are Code-Connected vs. not)
 - any gaps ("3 Figma nodes have no code mapping") and the next skill to run.
 
-Then hand off: building UI → **straps-compose**; a reference image/URL → **straps-intake**.
+Then hand off: building UI → **strap-compose**; a reference image/URL → **strap-intake**.

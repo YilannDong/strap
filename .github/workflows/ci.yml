@@ -20,9 +20,9 @@ jobs:
       - name: Unit + CLI tests
         run: node --test test/
       - name: Audit the sample library against the DS
-        run: node scripts/straps.mjs audit
+        run: node scripts/strap.mjs audit
       - name: Verify token codegen is committed & up to date
         run: |
-          node scripts/straps.mjs tokens
+          node scripts/strap.mjs tokens
           git diff --exit-code src/styles/tokens.css \
-            || (echo "::error::src/styles/tokens.css is stale — run 'node scripts/straps.mjs tokens' and commit." && exit 1)
+            || (echo "::error::src/styles/tokens.css is stale — run 'node scripts/strap.mjs tokens' and commit." && exit 1)

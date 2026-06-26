@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>straps — keep AI on your design system rails</title>
+    <title>strap — keep AI on your design system rails</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -92,14 +92,14 @@
           <rect class="tie" x="6" y="6.4" width="3" height="9.2" rx="1.5" />
           <rect class="tie" x="21" y="6.4" width="3" height="9.2" rx="1.5" />
         </svg>
-        <span class="word">straps</span>
+        <span class="word">strap</span>
         <span class="ver">v0.1 · live preview</span>
       </div>
 
-      <p class="tagline">AI builds fast and quietly drifts off-spec. Straps <em>holds the line</em>.</p>
+      <p class="tagline">AI builds fast and quietly drifts off-spec. Strap <em>holds the line</em>.</p>
       <p class="sub">
         An enforcement layer for Claude&nbsp;Code + Figma. Every swatch and component below is
-        bound to a token in <code style="font-family:var(--mono)">.straps/tokens.json</code> —
+        bound to a token in <code style="font-family:var(--mono)">.strap/tokens.json</code> —
         rendered straight from the generated CSS, no build step. Hardcode a hex and the hook
         bounces the write.
       </p>
@@ -108,9 +108,9 @@
 
       <div class="sec"><span class="no">01</span><h2>What it catches</h2><span class="note">PostToolUse · blocks the write</span></div>
       <div class="term">
-        <div class="cmd">straps check  src/components/PriceTag.css</div>
+        <div class="cmd">strap check  src/components/PriceTag.css</div>
         <div>&nbsp;</div>
-        <div class="block">⛔ Straps blocked this write — 2 Design System violations:</div>
+        <div class="block">⛔ Strap blocked this write — 2 Design System violations:</div>
         <div>&nbsp;</div>
         <div>&nbsp;&nbsp;background: <span class="strike">#2D6CF0</span> &nbsp;<span class="dim">→ use:</span> <span class="fix">var(--blue)</span></div>
         <div>&nbsp;&nbsp;font-family: <span class="strike">Helvetica</span> <span class="dim">→ not in the type system (Inter)</span></div>
@@ -120,7 +120,7 @@
 
       <hr class="rule" />
 
-      <div class="sec"><span class="no">02</span><h2>Components, on the rails</h2><span class="note">from .straps/registry.json</span></div>
+      <div class="sec"><span class="no">02</span><h2>Components, on the rails</h2><span class="note">from .strap/registry.json</span></div>
       <div class="row" style="margin-bottom:20px">
         <button class="ds-btn ds-btn--primary ds-btn--md">Ship it</button>
         <button class="ds-btn ds-btn--secondary ds-btn--md">Secondary</button>
@@ -168,8 +168,8 @@
       </div>
 
       <footer>
-        <p>Swap in your own system: <code style="font-family:var(--mono)">straps import private/my-ds</code> → everything above re-skins to your brand.</p>
-        <p class="by">built with straps · holding the line since commit one</p>
+        <p>Swap in your own system: <code style="font-family:var(--mono)">strap import private/my-ds</code> → everything above re-skins to your brand.</p>
+        <p class="by">built with strap · holding the line since commit one</p>
       </footer>
     </div>
   </body>

@@ -1,6 +1,6 @@
 {
   "$meta": {
-    "name": "Straps Starter · Design Tokens",
+    "name": "Strap Starter · Design Tokens",
     "mode": "light",
     "brand": "Open starter (Inter, confident blue) — MIT, safe to fork",
     "aliasSyntax": "{group.key} references resolve against this file (e.g. {color.blue}, {radius.card}).",

@@ -1,14 +1,14 @@
 {
-  "name": "straps",
+  "name": "strap",
   "version": "0.1.0",
   "description": "An enforcement layer for Claude Code + Claude design + Figma. 4 skills that keep AI on your Design System rails — components stay linked, tokens stay bound, nothing goes off-spec.",
-  "author": { "name": "Straps" },
+  "author": { "name": "Strap" },
   "license": "MIT",
   "keywords": ["figma", "design-system", "design-tokens", "code-connect", "enforcement", "claude-code"],
   "skills": [
-    "./.claude/skills/straps-preflight",
-    "./.claude/skills/straps-compose",
-    "./.claude/skills/straps-bind",
-    "./.claude/skills/straps-intake"
+    "./.claude/skills/strap-preflight",
+    "./.claude/skills/strap-compose",
+    "./.claude/skills/strap-bind",
+    "./.claude/skills/strap-intake"
   ]
 }

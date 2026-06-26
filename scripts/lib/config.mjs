@@ -1,11 +1,11 @@
-// Straps config + design-system artifact loader.
+// Strap config + design-system artifact loader.
 // Pure Node, zero dependencies. ESM.
 import { readFileSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
-const CONFIG_NAMES = ['straps.config.json', '.strapsrc.json'];
+const CONFIG_NAMES = ['strap.config.json', '.straprc.json'];
 
-/** Walk up from `start` until a straps config is found. Returns project root or null. */
+/** Walk up from `start` until a strap config is found. Returns project root or null. */
 export function findProjectRoot(start = process.cwd()) {
   let dir = resolve(start);
   while (true) {
@@ -23,16 +23,16 @@ function readJSON(path, fallback) {
   try {
     return JSON.parse(readFileSync(path, 'utf8'));
   } catch (e) {
-    throw new Error(`Straps: could not parse ${path}: ${e.message}`);
+    throw new Error(`Strap: could not parse ${path}: ${e.message}`);
   }
 }
 
 const DEFAULTS = {
   // Files the validator inspects.
   include: ['**/*.{js,jsx,ts,tsx,css,scss,vue,svelte}'],
-  exclude: ['**/node_modules/**', '**/.straps/**', '**/dist/**', '**/build/**'],
-  // Where the cached design-system artifacts live (built by `straps sync`).
-  artifacts: '.straps',
+  exclude: ['**/node_modules/**', '**/.strap/**', '**/dist/**', '**/build/**'],
+  // Where the cached design-system artifacts live (built by `strap sync`).
+  artifacts: '.strap',
   rules: {
     rawHex: 'error', // #fff / #ffffff literals not mapped to a token
     rawRgb: 'error', // rgb()/rgba() literals
@@ -61,7 +61,7 @@ export function loadConfig(root) {
   const projectRoot = root || findProjectRoot();
   if (!projectRoot) {
     throw new Error(
-      'Straps: no straps.config.json found. Run the straps-preflight skill or `straps init` first.'
+      'Strap: no strap.config.json found. Run the strap-preflight skill or `strap init` first.'
     );
   }
   let userCfg = {};
@@ -76,7 +76,7 @@ export function loadConfig(root) {
   cfg.root = projectRoot;
   cfg.artifactsDir = resolve(projectRoot, cfg.artifacts);
 
-  // Load the design-system artifacts produced by `straps sync`.
+  // Load the design-system artifacts produced by `strap sync`.
   cfg.tokens = readJSON(join(cfg.artifactsDir, 'tokens.json'), {
     colors: {},
     spacing: [],

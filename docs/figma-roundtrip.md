@@ -1,6 +1,6 @@
 # Figma round-trip runbook — proving the loop
 
-> The one milestone left after launch. This proves Straps' headline: **design ⇄ code stays
+> The one milestone left after launch. This proves Strap' headline: **design ⇄ code stays
 > consistent.** Tokens and components sync *from* Figma and enforce in code; code components link
 > *back* to their Figma masters via Code Connect. Run this when your Figma MCP isn't rate-limited.
 
@@ -22,7 +22,7 @@ below is written so you can execute it in one sitting without re-learning those 
 
 ## Part A — Design → Code (pull, then enforce)
 
-Run the **straps-preflight** skill, or these MCP calls directly:
+Run the **strap-preflight** skill, or these MCP calls directly:
 
 1. `whoami` — confirm auth + that the file's plan has MCP budget.
 2. **Select the Variables frame/page in the desktop app**, then `get_variable_defs(fileKey, nodeId)`
@@ -31,36 +31,36 @@ Run the **straps-preflight** skill, or these MCP calls directly:
    → the published component set (names, variants, node ids).
 4. `get_code_connect_map(fileKey, nodeId)` → existing Figma-node ↔ code links.
 5. Write the results into the artifacts (keys must match the scanner):
-   - `.straps/tokens.json` — `colors` (token→hex), `spacing[]`, `radius[]`, `fonts[]`.
+   - `.strap/tokens.json` — `colors` (token→hex), `spacing[]`, `radius[]`, `fonts[]`.
      `get_variable_defs` returns a flat `{ "group/name": "#hex" }`; split nested groups on `/`.
-   - `.straps/registry.json` — `components[]` with `name`, `variants`, `figma` node id.
-   - `.straps/code-connect.json` — `map` of `{ "12:340": { name, source } }`.
-6. `straps tokens` then `straps audit` — proves the **Figma-sourced** cache drives enforcement.
+   - `.strap/registry.json` — `components[]` with `name`, `variants`, `figma` node id.
+   - `.strap/code-connect.json` — `map` of `{ "12:340": { name, source } }`.
+6. `strap tokens` then `strap audit` — proves the **Figma-sourced** cache drives enforcement.
 
 ## Part B — Code → Design (link back)
 
 1. For each code component (`src/components/Button.tsx` …) find its Figma master:
    `get_code_connect_suggestions` / `get_context_for_code_connect`.
 2. Write the link: `add_code_connect_map` (or `send_code_connect_mappings`).
-3. Confirm it persists with `get_code_connect_map`, and mirror it into `.straps/code-connect.json`.
+3. Confirm it persists with `get_code_connect_map`, and mirror it into `.strap/code-connect.json`.
 4. *(Optional, the full code→design push)* build a screen in code and materialize it in Figma as
    **instances** with `use_figma` / `generate_figma_design`. Read `/figma-use` first.
 
 ## Part C — Prove consistency (the actual loop)
 
 - **Token change in Figma → code stays honest:** change a color value in Figma, re-run preflight,
-  re-run `straps tokens`. The CSS var updates everywhere; any code that hardcoded the old hex is
-  flagged by `straps audit`.
+  re-run `strap tokens`. The CSS var updates everywhere; any code that hardcoded the old hex is
+  flagged by `strap audit`.
 - **Component change in code → master stays linked:** rename/move a code component; Code Connect
   keeps the Figma node mapped to the new source.
-- Capture `get_screenshot` before/after, the `straps audit` output, and the populated
+- Capture `get_screenshot` before/after, the `strap audit` output, and the populated
   `code-connect.json`.
 
 ## Acceptance criteria — what "proven" means
 
-- [ ] `.straps/tokens.json` populated from **real Figma variables** (not an import file).
-- [ ] `.straps/registry.json` from **real published components**.
-- [ ] `.straps/code-connect.json` has ≥1 real `node → source` mapping that round-trips.
+- [ ] `.strap/tokens.json` populated from **real Figma variables** (not an import file).
+- [ ] `.strap/registry.json` from **real published components**.
+- [ ] `.strap/code-connect.json` has ≥1 real `node → source` mapping that round-trips.
 - [ ] A deliberate off-spec edit is **blocked** against the Figma-sourced tokens.
 - [ ] Before/after screenshots + audit logs captured for the README "The loop" section.
 
@@ -77,4 +77,4 @@ Run the **straps-preflight** skill, or these MCP calls directly:
 ## After it's proven
 
 - Add a **"The loop"** section + a short GIF to the README (this is the money shot).
-- Wire `straps sync` to orchestrate Part A (it currently prints guidance).
+- Wire `strap sync` to orchestrate Part A (it currently prints guidance).

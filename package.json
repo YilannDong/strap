@@ -1,13 +1,13 @@
 {
-  "name": "straps",
+  "name": "strap",
   "version": "0.1.0",
   "description": "An enforcement layer for Claude Code + Figma — 4 skills that keep AI on your Design System rails.",
   "type": "module",
-  "bin": { "straps": "scripts/straps.mjs" },
+  "bin": { "strap": "scripts/strap.mjs" },
   "scripts": {
-    "audit": "node scripts/straps.mjs audit",
-    "validate": "node scripts/straps.mjs validate",
-    "tokens": "node scripts/straps.mjs tokens",
+    "audit": "node scripts/strap.mjs audit",
+    "validate": "node scripts/strap.mjs validate",
+    "tokens": "node scripts/strap.mjs tokens",
     "test": "node --test test/"
   },
   "engines": { "node": ">=18" },
@@ -23,5 +23,5 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1"
   },
-  "files": ["scripts/", ".claude/", ".straps/", "examples/", "CLAUDE.md", "straps.config.json"]
+  "files": ["scripts/", ".claude/", ".strap/", "examples/", "CLAUDE.md", "strap.config.json"]
 }

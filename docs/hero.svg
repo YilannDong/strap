@@ -4,14 +4,14 @@
   <!-- faint left rail, echoing the gallery -->
   <rect x="56" y="40" width="1.5" height="340" fill="#F1F5F9"/>
 
-  <!-- wordmark: rails mark + "straps" -->
+  <!-- wordmark: rails mark + "strap" -->
   <g transform="translate(78,72)">
     <rect x="0" y="9" width="92" height="11" rx="5.5" fill="#111827"/>
     <rect x="0" y="49" width="92" height="11" rx="5.5" fill="#111827"/>
     <rect x="18" y="20" width="10" height="29" rx="5" fill="#2563EB"/>
     <rect x="64" y="20" width="10" height="29" rx="5" fill="#2563EB"/>
   </g>
-  <text x="190" y="128" font-size="68" font-weight="800" letter-spacing="-2.5" fill="#111827">straps</text>
+  <text x="190" y="128" font-size="68" font-weight="800" letter-spacing="-2.5" fill="#111827">strap</text>
 
   <!-- tagline -->
   <text x="80" y="210" font-size="34" font-weight="700" fill="#111827" letter-spacing="-0.5">Keep AI on your</text>
@@ -27,7 +27,7 @@
     <circle cx="660" cy="90" r="5" fill="#EF4444"/>
     <circle cx="680" cy="90" r="5" fill="#FBBF24"/>
     <circle cx="700" cy="90" r="5" fill="#22C55E"/>
-    <text x="724" y="95" font-size="14" fill="#64748B">straps check · PriceTag.css</text>
+    <text x="724" y="95" font-size="14" fill="#64748B">strap check · PriceTag.css</text>
     <line x1="628" y1="116" x2="1136" y2="116" stroke="#1E293B" stroke-width="1.5"/>
 
     <text x="656" y="160" font-size="17" font-weight="700" fill="#F87171">⛔ blocked — 2 violations</text>

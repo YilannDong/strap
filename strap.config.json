@@ -1,8 +1,8 @@
 {
-  "$schema": "./.straps/config.schema.json",
+  "$schema": "./.strap/config.schema.json",
   "include": ["**/*.{js,jsx,ts,tsx,css,scss,vue,svelte}"],
-  "exclude": ["**/node_modules/**", "**/.straps/**", "**/dist/**", "**/build/**"],
-  "artifacts": ".straps",
+  "exclude": ["**/node_modules/**", "**/.strap/**", "**/dist/**", "**/build/**"],
+  "artifacts": ".strap",
   "rules": {
     "rawHex": "error",
     "rawRgb": "error",

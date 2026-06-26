@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Straps gallery (static, no-build)",
+      "name": "Strap gallery (static, no-build)",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["scripts/preview-server.py", "5173"],
       "port": 5173

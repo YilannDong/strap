@@ -1,7 +1,7 @@
-# Straps
+# Strap
 
 <p align="center">
-  <img src="docs/hero.svg" alt="Straps — keep AI on your design system rails" width="860">
+  <img src="docs/hero.svg" alt="Strap — keep AI on your design system rails" width="860">
 </p>
 
 [![ci](https://github.com/YilannDong/strap/actions/workflows/ci.yml/badge.svg)](https://github.com/YilannDong/strap/actions/workflows/ci.yml)
@@ -12,7 +12,7 @@ stay bound, nothing goes off-spec.
 
 **[Live demo →](https://YilannDong.github.io/strap/)** · the no-build component gallery.
 
-Straps is inspired by [claude2figma](https://github.com/senlindesign/claude2figma) but adds a
+Strap is inspired by [claude2figma](https://github.com/senlindesign/claude2figma) but adds a
 real teeth: a zero-dependency **validation engine** and a **PostToolUse hook that actually blocks
 off-spec writes** — enforcement, not just instructions to the model.
 
@@ -20,11 +20,11 @@ off-spec writes** — enforcement, not just instructions to the model.
 
 ## Who it's for
 
-Straps is for you if **an AI agent writes UI in your repo and you have a design system you want it
+Strap is for you if **an AI agent writes UI in your repo and you have a design system you want it
 to respect.** Concretely:
 
 - **Design-system teams / design engineers** tired of catching `#3b82f6` and one-off `padding:
-  17px` in PR review — Straps blocks it at write time instead.
+  17px` in PR review — Strap blocks it at write time instead.
 - **Front-end teams using Claude Code** (or similar agents) on a codebase with design tokens and a
   component library, who want generated UI to stay on-brand without babysitting every diff.
 - **Teams with a Figma → code pipeline** who want tokens and components to stay linked in both
@@ -37,47 +37,47 @@ to respect.** Concretely:
 Be honest with yourself before adopting it:
 
 - **No design system yet.** If you have no tokens/components, there's nothing to enforce. Start a
-  token file first (the `examples/starter` system is a fine seed), *then* add Straps.
-- **Not using AI to generate UI.** Straps' edge is the agent-blocking hook. If humans write all
+  token file first (the `examples/starter` system is a fine seed), *then* add Strap.
+- **Not using AI to generate UI.** Strap' edge is the agent-blocking hook. If humans write all
   the CSS and a `stylelint`/`eslint` rule + code review already keep you honest, that may be
-  enough — Straps overlaps.
+  enough — Strap overlaps.
 - **Native mobile (Swift/Kotlin) or non-web UI.** The scanner targets web files
   (`css/scss/js/jsx/ts/tsx/vue/svelte`). It won't read Swift or Compose.
 - **Creative / bespoke / marketing one-offs** where going off-system *is* the point. Rails are the
   wrong tool for art direction.
-- **You want a full token build system.** Straps enforces and does light CSS-var codegen; it is
+- **You want a full token build system.** Strap enforces and does light CSS-var codegen; it is
   not a Style Dictionary replacement for transforming tokens across many platforms. Use both.
 - **Backend / CLI / data projects** with no UI surface.
 
 ## Why it's different
 
-| | claude2figma | **Straps** |
+| | claude2figma | **Strap** |
 |---|---|---|
 | Guidance | Skill prompts | Skill prompts **+ executable rules** |
 | Token compliance | Asked of the model | **Scanned & blocked** (raw hex / rgb / off-scale px / off-system fonts) |
 | Components | "use instances" | Registry-backed; **redefining a DS component is blocked** |
-| QA | Prompt-level "verify" | `straps check` runs on every Edit/Write and **fails the write on errors** |
-| Linkage | — | Code Connect map cached in `.straps/`, kept in sync |
-| Artifacts | Token Map / Registry (described) | **Machine-readable** `.straps/tokens.json`, `registry.json`, `code-connect.json` |
-| Config | — | `straps.config.json` — per-rule severity (`error`/`warn`/`off`) |
+| QA | Prompt-level "verify" | `strap check` runs on every Edit/Write and **fails the write on errors** |
+| Linkage | — | Code Connect map cached in `.strap/`, kept in sync |
+| Artifacts | Token Map / Registry (described) | **Machine-readable** `.strap/tokens.json`, `registry.json`, `code-connect.json` |
+| Config | — | `strap.config.json` — per-rule severity (`error`/`warn`/`off`) |
 
 ## The 4 skills
 
-- **straps-preflight** — sync Figma → build the local DS cache (Token Map, Component Registry,
+- **strap-preflight** — sync Figma → build the local DS cache (Token Map, Component Registry,
   Code Connect map) and verify the rails are live. *Run first.*
-- **straps-compose** — library-first UI construction. Reuse registry components as instances;
+- **strap-compose** — library-first UI construction. Reuse registry components as instances;
   Auto Layout; semantic naming; keep Code Connect links.
-- **straps-bind** — every color/font/spacing/radius bound to a token; post-write QA blocks
+- **strap-bind** — every color/font/spacing/radius bound to a token; post-write QA blocks
   literals.
-- **straps-intake** — turn a screenshot/URL/description into a token-aware Design Brief before
+- **strap-intake** — turn a screenshot/URL/description into a token-aware Design Brief before
   building, so downstream work is already on-spec.
 
 ## How enforcement works
 
 ```
-edit a file ──▶ PostToolUse hook ──▶ scripts/straps.mjs check
+edit a file ──▶ PostToolUse hook ──▶ scripts/strap.mjs check
                                         │
-                       reads .straps/tokens.json + registry.json
+                       reads .strap/tokens.json + registry.json
                                         │
                  ┌──────────────────────┴───────────────────────┐
               no errors                                       errors
@@ -96,8 +96,8 @@ re-declaration of a registry component.
 **As a drop-in (any project):**
 ```bash
 # copy these into your project root
-CLAUDE.md  straps.config.json  .straps/  .claude/  scripts/
-node scripts/straps.mjs init     # if you don't already have config + artifacts
+CLAUDE.md  strap.config.json  .strap/  .claude/  scripts/
+node scripts/strap.mjs init     # if you don't already have config + artifacts
 ```
 The hook in `.claude/settings.json` activates automatically in Claude Code.
 
@@ -108,8 +108,8 @@ The hook in `.claude/settings.json` activates automatically in Claude Code.
 ```bash
 git clone https://github.com/YilannDong/strap && cd strap
 node --test test/                  # tests pass on Node 18+
-node scripts/straps.mjs audit      # sample library validates clean against the DS
-node scripts/straps.mjs tokens     # (re)generate src/styles/tokens.css
+node scripts/strap.mjs audit      # sample library validates clean against the DS
+node scripts/strap.mjs tokens     # (re)generate src/styles/tokens.css
 ```
 
 The repo ships with the open **`examples/starter`** design system already imported, so `audit`
@@ -118,18 +118,18 @@ is green out of the box. Then point it at *your* system — see
 
 ## How to use it
 
-**Mental model:** Straps is not a tool you *run* all day. It's a guard that sits in your repo and
+**Mental model:** Strap is not a tool you *run* all day. It's a guard that sits in your repo and
 watches. You set it up once, then build normally — and it stops anything off-spec before it lands.
 There are really just three moments:
 
 ### ① Set it up (once)
 
-Get the files into your project (drop-in or plugin, above), then point Straps at your design
+Get the files into your project (drop-in or plugin, above), then point Strap at your design
 system:
 
 ```bash
-node scripts/straps.mjs import private/my-ds   # your tokens + component specs → .straps/
-node scripts/straps.mjs tokens                 # → src/styles/tokens.css (the CSS vars to bind to)
+node scripts/strap.mjs import private/my-ds   # your tokens + component specs → .strap/
+node scripts/strap.mjs tokens                 # → src/styles/tokens.css (the CSS vars to bind to)
 ```
 
 No design system yet? The repo ships `examples/starter` already imported, so you can try it
@@ -143,33 +143,33 @@ every edit. A real exchange:
 ```
 You:   "Add a price tag to the product card."
 Claude: writes PriceTag.css with  background: #3b82f6
-Straps: ⛔ blocked — #3b82f6 is off-spec → use var(--blue)
+Strap: ⛔ blocked — #3b82f6 is off-spec → use var(--blue)
 Claude: rewrites it as  background: var(--blue)   ✅
 You:    said nothing. The drift was caught and fixed before you saw it.
 ```
 
 The four skills cover the rest of the loop:
-- *"let's start"* / paste a Figma URL → **straps-preflight** syncs tokens + components.
-- *"build a settings page"* → **straps-compose** reuses registry components; **straps-bind** keeps
+- *"let's start"* / paste a Figma URL → **strap-preflight** syncs tokens + components.
+- *"build a settings page"* → **strap-compose** reuses registry components; **strap-bind** keeps
   values on tokens.
-- *share a screenshot/URL* → **straps-intake** maps it onto your tokens instead of pixel-copying.
+- *share a screenshot/URL* → **strap-intake** maps it onto your tokens instead of pixel-copying.
 
 ### ③ Sweep the whole repo (when you want)
 
 ```bash
-node scripts/straps.mjs audit       # validate everything against the DS
+node scripts/strap.mjs audit       # validate everything against the DS
 npm test                            # run the rule tests (Node 18+)
 ```
 
 That's the entire surface: **set up once → build → the hook holds the line → audit on demand.**
-Swap design systems with one `straps import` and the whole UI re-skins.
+Swap design systems with one `strap import` and the whole UI re-skins.
 
 > The automatic blocking in ② needs **Node on your PATH** (`brew install node`) so the hook can run
 > locally. Without it, enforcement still runs in CI and via `audit`, just not on every keystroke.
 
 ## Token architecture
 
-Straps follows the W3C DTCG / Material-3 model — **primitives → semantic → component**:
+Strap follows the W3C DTCG / Material-3 model — **primitives → semantic → component**:
 
 - **Primitives** (`tokens.json` `colors`): the raw palette. The validator matches any hardcoded
   hex against these and tells you the token to use instead.
@@ -187,13 +187,13 @@ block to your tokens when your primitives are pure palette steps (`blue/600`).
 ## Importing an existing design system
 
 If you already have a token file + component specs (DTCG-style JSON with `{group.key}`
-aliases), put them in a folder Straps won't publish (`private/` is gitignored) and point the
+aliases), put them in a folder Strap won't publish (`private/` is gitignored) and point the
 importer at it:
 
 ```bash
-node scripts/straps.mjs import private/my-ds   # -> .straps/tokens.json + registry.json
-node scripts/straps.mjs tokens                 # -> src/styles/tokens.css
-node scripts/straps.mjs audit
+node scripts/strap.mjs import private/my-ds   # -> .strap/tokens.json + registry.json
+node scripts/strap.mjs tokens                 # -> src/styles/tokens.css
+node scripts/strap.mjs audit
 ```
 
 `import` flattens colors (incl. nested groups), derives the spacing/radius scales, collects font
@@ -210,8 +210,8 @@ whenever the source changes; the artifacts are generated, not hand-edited.
 `tokens.json` is the source of truth; generate CSS variables your code binds to:
 
 ```bash
-node scripts/straps.mjs tokens          # writes src/styles/tokens.css
-node scripts/straps.mjs tokens --stdout # print instead
+node scripts/strap.mjs tokens          # writes src/styles/tokens.css
+node scripts/strap.mjs tokens --stdout # print instead
 ```
 
 The generated file is auto-exempted from scanning (it's the one place raw hex/rgba/shadows
@@ -220,7 +220,7 @@ legitimately live). Everything else must reference `var(--color-brand-primary)` 
 ## Sample library + live preview
 
 `src/components/` ships token-bound React components (`Button`, `Input`, `Card`, `Badge`) plus
-`src/App.tsx`, a screen built the Straps way — reference code that audits 100% clean. Edit any
+`src/App.tsx`, a screen built the Strap way — reference code that audits 100% clean. Edit any
 value to a raw hex and watch the hook bounce it.
 
 `index.html` is a **no-build static gallery** of the same components (CSS only, no bundler). Open
@@ -232,7 +232,7 @@ python3 scripts/preview-server.py 5173     # → http://127.0.0.1:5173
 
 ## Config
 
-`straps.config.json` controls which files are scanned and the severity of each rule:
+`strap.config.json` controls which files are scanned and the severity of each rule:
 
 ```json
 {
@@ -248,7 +248,7 @@ Set any rule to `"off"` to disable, `"warn"` to advise, `"error"` to block.
 ## Status & roadmap
 
 - ✅ **Enforcement engine** — validate / audit / blocking hook, tested + CI on Node 18/20/22.
-- ✅ **Token + component import** from a DTCG-style design system (`straps import`).
+- ✅ **Token + component import** from a DTCG-style design system (`strap import`).
 - 🔜 **Live Figma round-trip** — pulling tokens/components and linking code↔Figma via Code Connect
   is wired through the skills but not yet demonstrated end-to-end (needs a Figma plan with MCP
   budget). The turn-key runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
@@ -256,7 +256,7 @@ Set any rule to `"off"` to disable, `"warn"` to advise, `"error"` to block.
 ## Requirements
 
 - Node 18+ (the engine is pure Node ESM, no dependencies).
-- Figma MCP connected in Claude Code (for `straps-preflight` sync).
+- Figma MCP connected in Claude Code (for `strap-preflight` sync).
 
 ## License
 

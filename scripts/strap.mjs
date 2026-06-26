@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// Straps CLI — the enforcement engine behind the 4 skills.
+// Strap CLI — the enforcement engine behind the 4 skills.
 //
-//   straps validate <files...>   Validate specific files (exit 1 on error).
-//   straps audit                 Validate the whole project against the DS.
-//   straps check                 Hook mode: read a PostToolUse payload on stdin,
+//   strap validate <files...>   Validate specific files (exit 1 on error).
+//   strap audit                 Validate the whole project against the DS.
+//   strap check                 Hook mode: read a PostToolUse payload on stdin,
 //                                validate the edited file, exit 2 to block on error.
-//   straps init                  Scaffold straps.config.json + .straps/ artifacts.
-//   straps sync                  Print the steps to refresh artifacts from Figma.
+//   strap init                  Scaffold strap.config.json + .strap/ artifacts.
+//   strap sync                  Print the steps to refresh artifacts from Figma.
 //
 // Pure Node, zero dependencies.
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
@@ -31,7 +31,7 @@ function walk(dir, cfg, acc = []) {
     let st;
     try { st = statSync(full); } catch { continue; }
     if (st.isDirectory()) {
-      if (name === 'node_modules' || name.startsWith('.git') || name === '.straps') continue;
+      if (name === 'node_modules' || name.startsWith('.git') || name === '.strap') continue;
       walk(full, cfg, acc);
     } else if (VALID_EXT.has(extname(name))) {
       acc.push(full);
@@ -75,7 +75,7 @@ function checkHook() {
   const filePath = ti.file_path || ti.path || (rest[0] || '');
   if (!filePath) process.exit(0);
   let cfg;
-  try { cfg = loadConfig(); } catch { process.exit(0); } // no straps project -> stay out of the way
+  try { cfg = loadConfig(); } catch { process.exit(0); } // no strap project -> stay out of the way
   if (!VALID_EXT.has(extname(filePath)) || !existsSync(filePath)) process.exit(0);
 
   const text = readFileSync(filePath, 'utf8');
@@ -84,19 +84,19 @@ function checkHook() {
   const warns = violations.filter((v) => v.severity === 'warn');
 
   if (!errors.length) {
-    if (warns.length) console.error(`Straps: ${warns.length} off-spec warning(s) in ${relative(cfg.root, filePath)} — run \`straps audit\` to review.`);
+    if (warns.length) console.error(`Strap: ${warns.length} off-spec warning(s) in ${relative(cfg.root, filePath)} — run \`strap audit\` to review.`);
     process.exit(0);
   }
 
   // Block: exit code 2 makes Claude Code surface stderr to the model for correction.
   const lines = [
-    `⛔ Straps blocked this write — ${errors.length} Design System violation(s) in ${relative(cfg.root, filePath)}:`,
+    `⛔ Strap blocked this write — ${errors.length} Design System violation(s) in ${relative(cfg.root, filePath)}:`,
     '',
   ];
   for (const v of errors) {
     lines.push(`  ${v.line}:${v.col}  ${v.message}${v.fix ? `  → use: ${v.fix}` : ''}`);
   }
-  lines.push('', 'Fix these to stay on DS rails: bind values to tokens (.straps/tokens.json) and use registry components (.straps/registry.json). Then re-apply the edit.');
+  lines.push('', 'Fix these to stay on DS rails: bind values to tokens (.strap/tokens.json) and use registry components (.strap/registry.json). Then re-apply the edit.');
   console.error(lines.join('\n'));
   process.exit(2);
 }
@@ -104,33 +104,33 @@ function checkHook() {
 // ---- init --------------------------------------------------------------------
 function scaffold() {
   const root = process.cwd();
-  const cfgPath = join(root, 'straps.config.json');
+  const cfgPath = join(root, 'strap.config.json');
   if (!existsSync(cfgPath)) {
     writeFileSync(cfgPath, JSON.stringify({
-      $schema: './.straps/config.schema.json',
+      $schema: './.strap/config.schema.json',
       include: ['**/*.{js,jsx,ts,tsx,css,scss,vue,svelte}'],
-      artifacts: '.straps',
+      artifacts: '.strap',
       rules: {
         rawHex: 'error', rawRgb: 'error', rawFont: 'error',
         offScaleSpacing: 'warn', offScaleRadius: 'warn', unlinkedComponent: 'error',
       },
     }, null, 2) + '\n');
-    console.log('created straps.config.json');
+    console.log('created strap.config.json');
   }
-  const art = join(root, '.straps');
+  const art = join(root, '.strap');
   if (!existsSync(art)) mkdirSync(art, { recursive: true });
   const stub = (name, obj) => {
     const p = join(art, name);
-    if (!existsSync(p)) { writeFileSync(p, JSON.stringify(obj, null, 2) + '\n'); console.log('created .straps/' + name); }
+    if (!existsSync(p)) { writeFileSync(p, JSON.stringify(obj, null, 2) + '\n'); console.log('created .strap/' + name); }
   };
-  stub('tokens.json', { _note: 'Run `straps sync` (figma) to populate.', colors: {}, spacing: [], radius: [], fonts: [] });
+  stub('tokens.json', { _note: 'Run `strap sync` (figma) to populate.', colors: {}, spacing: [], radius: [], fonts: [] });
   stub('registry.json', { _note: 'Component registry from your Figma library.', components: [] });
   stub('code-connect.json', { _note: 'Figma node <-> code component map.', map: {} });
-  console.log('\nStraps initialized. Next: run the straps-preflight skill to populate artifacts from Figma.');
+  console.log('\nStrap initialized. Next: run the strap-preflight skill to populate artifacts from Figma.');
 }
 
 // ---- tokens (codegen) --------------------------------------------------------
-// Emit CSS custom properties from .straps/tokens.json so code has real vars to bind to.
+// Emit CSS custom properties from .strap/tokens.json so code has real vars to bind to.
 function tokenVarName(token) {
   return '--' + String(token)
     .replace(/([a-z])([A-Z])/g, '$1-$2')   // camelCase -> camel-Case
@@ -142,7 +142,7 @@ function tokenVarName(token) {
 
 function generateTokensCss(cfg) {
   const t = cfg.tokens;
-  const lines = [':root {', '  /* generated by `straps tokens` from .straps/tokens.json — do not edit by hand */'];
+  const lines = [':root {', '  /* generated by `strap tokens` from .strap/tokens.json — do not edit by hand */'];
   const group = (title, entries, fmt) => {
     const items = Object.entries(entries || {}).filter(([k]) => k !== '_note');
     if (!items.length) return;
@@ -186,14 +186,14 @@ function tokensCmd() {
 }
 
 function syncHelp() {
-  console.log(`Straps sync — refresh .straps/ artifacts from your Figma library.
+  console.log(`Strap sync — refresh .strap/ artifacts from your Figma library.
 
-This is driven by the straps-preflight skill, which uses the Figma MCP:
+This is driven by the strap-preflight skill, which uses the Figma MCP:
   1. get_variable_defs      -> tokens.json   (colors, spacing, radius, fonts)
   2. get_libraries + search_design_system -> registry.json (components)
   3. get_code_connect_map   -> code-connect.json (figma node <-> code)
 
-Run the skill, or wire these tools yourself, then validate with: straps audit
+Run the skill, or wire these tools yourself, then validate with: strap audit
 
 Full bidirectional runbook (pull + Code Connect link-back): docs/figma-roundtrip.md`);
 }
@@ -207,10 +207,10 @@ try {
   } else if (cmd === 'import') {
     const root = findProjectRoot() || process.cwd();
     const r = importDesignSystem(root, rest[0] ? resolve(rest[0]) : undefined);
-    console.log(`Straps import: ${r.colorCount} colors, ${r.componentCount} components.`);
+    console.log(`Strap import: ${r.colorCount} colors, ${r.componentCount} components.`);
     console.log(`  spacing scale: [${r.spacing.join(', ')}]`);
     console.log(`  radius scale:  [${r.radius.join(', ')}]`);
-    console.log('Next: `straps tokens` to regen CSS vars, then `straps audit`.');
+    console.log('Next: `strap tokens` to regen CSS vars, then `strap audit`.');
   } else if (cmd === 'tokens') {
     tokensCmd();
   } else if (cmd === 'sync') {
@@ -228,19 +228,19 @@ try {
     const { errors } = printResults(results);
     process.exit(errors ? 1 : 0);
   } else {
-    console.log(`Straps — Design System enforcement engine
+    console.log(`Strap — Design System enforcement engine
 
 Usage:
-  straps init               Scaffold config + .straps/ artifacts
-  straps import             Build tokens.json + registry.json from .straps/source/
-  straps tokens [out]       Generate CSS variables from tokens.json (--stdout to print)
-  straps sync               How to refresh artifacts from Figma
-  straps validate <files>   Validate specific files
-  straps audit              Validate the whole project
-  straps check              Hook mode (reads PostToolUse payload on stdin)`);
+  strap init               Scaffold config + .strap/ artifacts
+  strap import             Build tokens.json + registry.json from .strap/source/
+  strap tokens [out]       Generate CSS variables from tokens.json (--stdout to print)
+  strap sync               How to refresh artifacts from Figma
+  strap validate <files>   Validate specific files
+  strap audit              Validate the whole project
+  strap check              Hook mode (reads PostToolUse payload on stdin)`);
     process.exit(0);
   }
 } catch (e) {
-  console.error('Straps: ' + e.message);
+  console.error('Strap: ' + e.message);
   process.exit(1);
 }
