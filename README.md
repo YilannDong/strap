@@ -293,9 +293,21 @@ Set any rule to `"off"` to disable, `"warn"` to advise, `"error"` to block.
 
 ## Requirements
 
-- Node 18+ (the engine is pure Node ESM, no dependencies).
-- Figma MCP connected in Claude Code (for `strap-preflight` sync).
+- Node 18+ (the engine is pure Node ESM, **zero runtime dependencies**).
+- Figma MCP connected in Claude Code (only for the `strap-preflight` sync / Figma features).
+
+## Free & self-hosted
+
+Strap costs **nothing** to run, adopt, or maintain:
+
+- **Runs entirely on your machine.** The engine is a zero-dependency Node script — no server, no
+  telemetry, nothing phones home. Your code and tokens never leave your repo.
+- **No paid services, no backend to host.** Each user brings their own Figma + Claude Code; Strap
+  never proxies or bills anything.
+- **Free on GitHub.** CI and the live-demo Pages deploy run on the free tier for **public** repos
+  (Actions minutes are unlimited for public repositories); the workflows use no secrets.
+- **MIT licensed** — fork it, ship it, change it. No attribution gymnastics.
 
 ## License
 
-MIT.
+MIT — see [LICENSE](LICENSE). Free for any use, including commercial.
