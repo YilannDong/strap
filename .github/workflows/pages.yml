@@ -21,10 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Turns Pages on automatically if it isn't already (no manual Settings toggle needed).
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      # NOTE: enable Pages once at Settings → Pages → Source: GitHub Actions.
+      # (It can't be enabled from a workflow on this account — GitHub requires a human the first time.)
       - name: Assemble static site (gallery + the CSS it links)
         run: |
           mkdir -p _site/src/styles _site/src/components
