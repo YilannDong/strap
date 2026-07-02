@@ -9,7 +9,8 @@
     "rawFont": "error",
     "offScaleSpacing": "warn",
     "offScaleRadius": "warn",
-    "unlinkedComponent": "error"
+    "unlinkedComponent": "error",
+    "duplicateComponent": "warn"
   },
   "allow": {
     "colors": ["transparent", "currentColor", "inherit", "none"],
