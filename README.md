@@ -354,6 +354,36 @@ it keeps the deterministic core (off-spec values, named re-declarations) trustwo
 look-alikes for a human to judge. Set it to `"off"` to silence, or `"error"` if your team wants it to
 block.
 
+### Figma duplicate radar (`strap figma-audit`)
+
+The same idea, applied to the **Figma canvas** — because look-alikes are born there too. Strap has no
+runtime inside Figma, so it drives the **Figma MCP**: the **strap-figma-audit** skill walks the file
+(`get_metadata`), enriches each frame with its bound-variable token footprint (`get_design_context`),
+and writes `.strap/figma-frames.json`. The deterministic engine then audits that snapshot offline:
+
+```bash
+node scripts/strap.mjs figma-audit          # reads .strap/figma-frames.json
+```
+
+Two advisory (`warn`) rules:
+
+- **`figmaDuplicateComponent`** — a raw frame whose token footprint matches a registry component but
+  that was never made an **instance** (instances/masters are skipped, like the CSS name-skip):
+
+  ```
+  warn  Home · Panel (10:1)  Frame "Panel" reuses 4/4 of the "card" component's tokens
+        (color.line, color.white, radius.card, …) but is a raw frame, not an instance.
+        Replace it with the library component.  figmaDuplicateComponent
+  ```
+
+- **`figmaDuplicateFrame`** — clusters of near-identical raw frames (same structure + tokens) that
+  should be one component: *"2 near-identical frames … componentize to dedupe."*
+
+**Honest limits:** it's advisory + heuristic (same trade-off as the code radar); instance detection
+depends on what `get_design_context` exposes (ambiguous nodes are treated as raw frames, so it can
+over-flag); and it enriches at most ~60 frames per run to respect Figma rate limits, logging anything
+skipped. For continuous in-canvas linting, dedicated Figma plugins (Design Lint, etc.) complement it.
+
 ## Status & roadmap
 
 - ✅ **Enforcement engine** — validate / audit / blocking hook, tested + CI on Node 18/20/22.
@@ -366,13 +396,19 @@ block.
   CSS rule whose token footprint matches an existing registry component but that was never named one
   (the `<div>`-that's-really-a-`Card` case named re-declaration detection misses). Stays advisory to
   keep the deterministic core trustworthy — see **[Duplicate radar](#duplicate-radar-duplicatecomponent)**.
+- ✅ **Figma duplicate radar** — `strap figma-audit` + the **strap-figma-audit** skill: walks the
+  canvas via the Figma MCP and flags raw frames that are really a library component, plus clusters of
+  near-identical frames. Advisory, MCP-driven (no Figma plugin) — see
+  **[Figma duplicate radar](#figma-duplicate-radar-strap-figma-audit)**.
 - The turn-key bidirectional runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
 
 **Exploring (not built yet):**
 
-- 🔭 **Figma-side duplicate detection** — Strap is code-side only; spotting duplicate *frames* in
-  Figma would need a separate plugin/MCP job. Likely to **integrate an existing Figma lint tool**
-  rather than rebuild it.
+- 🔭 **Tighter Figma ↔ code round-trips** — richer bidirectional sync (Code Connect publish on any
+  plan, continuous drift detection between canvas and code).
+- 🔭 **Deeper Figma dedup** — the current radar is a conservative first pass; per-element AST-grade
+  fingerprinting and false-positive tuning are the long pole. Dedicated Figma lint plugins
+  (Design Lint, etc.) complement it for continuous in-canvas checks.
 
 ## Requirements
 

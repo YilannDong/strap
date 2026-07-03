@@ -1,6 +1,13 @@
 // Strap scanner: the actual enforcement rules.
 // Given file contents + config, return a list of violations.
 import { normalizeHex } from './config.mjs';
+import {
+  canonFromVarName,
+  canonFromConsumes,
+  matchFootprint,
+  DUP_MIN_CONSUMES,
+  DUP_MIN_SHARED,
+} from './fingerprint.mjs';
 
 const SEV_RANK = { off: 0, warn: 1, error: 2 };
 
@@ -33,30 +40,9 @@ function buildJsxRe(names) {
   return new RegExp(`<\\s*(${alt})\\b`, 'g');
 }
 
-// --- Duplicate radar helpers -------------------------------------------------
-// Canonicalize a token reference to a `group.leaf` key so a CSS var, an SCSS var,
-// or a `{group.key}` alias in code can be compared against a registry component's
-// `consumes` list (which is written as `color.line`, `radius.card`, `shadow.md`).
-const TOKEN_GROUP_PREFIXES = ['radius', 'shadow', 'gradient', 'motion', 'font', 'space'];
-
-// A bare var/scss name -> canonical key. Colors are the un-prefixed group in the
-// generated CSS (`--line`, `--blue`), everything else carries its group as a prefix
-// (`--radius-card`, `--shadow-md`, `--font-body`).
-function canonFromVarName(name) {
-  const n = String(name).toLowerCase();
-  for (const g of TOKEN_GROUP_PREFIXES) {
-    if (n.startsWith(g + '-')) return `${g === 'space' ? 'space' : g}.${n.slice(g.length + 1)}`;
-  }
-  return `color.${n}`;
-}
-
-// `consumes` entry -> canonical key. Keep group + leaf; drop deeper nesting.
-function canonFromConsumes(entry) {
-  const parts = String(entry).toLowerCase().split('.');
-  if (parts.length < 2) return null;
-  return `${parts[0]}.${parts.slice(1).join('.')}`;
-}
-
+// --- Duplicate radar (CSS-specific extraction) -------------------------------
+// The canonicalization + match thresholds live in fingerprint.mjs (shared with
+// the Figma radar). This is just the CSS-rule token extractor.
 // Collect the set of canonical token keys referenced inside one CSS rule body.
 const VAR_REF_RE = /var\(\s*--([a-zA-Z0-9-]+)/g;
 const SCSS_REF_RE = /\$([a-zA-Z0-9-]+)/g;
@@ -75,13 +61,6 @@ function tokensInBlock(body) {
   while ((r = TOKENS_REF_RE.exec(body))) keys.add(`${r[1]}.${r[2]}`.toLowerCase());
   return keys;
 }
-
-// Duplicate-radar thresholds — advisory by design, so tuned to fire only on a
-// strong footprint match. A component must define a real footprint (>=3 tokens),
-// the rule must share most of it (>=60%), and at least 3 tokens must overlap.
-const DUP_MIN_CONSUMES = 3;
-const DUP_MIN_SHARED = 3;
-const DUP_MIN_COVERAGE = 0.6;
 
 function add(out, cfg, rule, text, index, message, fix) {
   const s = sev(cfg, rule);
@@ -225,10 +204,8 @@ export function scanFile(filePath, text, cfg) {
 
       let best = null;
       for (const f of footprints) {
-        let shared = 0;
-        for (const k of f.keys) if (used.has(k)) shared++;
-        const coverage = shared / f.keys.size;
-        if (shared < DUP_MIN_SHARED || coverage < DUP_MIN_COVERAGE) continue;
+        const { shared, coverage, isMatch } = matchFootprint(used, f.keys);
+        if (!isMatch) continue;
         if (!best || coverage > best.coverage || (coverage === best.coverage && shared > best.shared)) {
           best = { comp: f.comp, keys: f.keys, shared, coverage };
         }

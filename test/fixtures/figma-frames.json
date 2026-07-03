@@ -1,0 +1,36 @@
+{
+  "_source": { "figmaFileKey": "SAMPLE", "syncedAt": "2026-07-03T00:00:00Z" },
+  "_note": "Test fixture for `strap figma-audit`. The starter 'card' component consumes color.line, color.white, radius.card, shadow.md.",
+  "frames": [
+    {
+      "id": "10:1", "name": "Panel", "page": "Home", "type": "FRAME",
+      "width": 300, "height": 145,
+      "children": [ { "type": "TEXT", "name": "Title" }, { "type": "FRAME", "name": "Body" } ],
+      "tokens": ["color.white", "color.line", "radius.card", "shadow.md"]
+    },
+    {
+      "id": "10:2", "name": "Featured plan", "page": "Home", "type": "INSTANCE", "componentId": "1:20",
+      "width": 300, "height": 145,
+      "children": [ { "type": "TEXT", "name": "Title" }, { "type": "FRAME", "name": "Body" } ],
+      "tokens": ["color.white", "color.line", "radius.card", "shadow.md"]
+    },
+    {
+      "id": "20:1", "name": "Testimonial A", "page": "About", "type": "FRAME",
+      "width": 320, "height": 120,
+      "children": [ { "type": "TEXT", "name": "Quote" }, { "type": "TEXT", "name": "Name" }, { "type": "FRAME", "name": "Avatar" } ],
+      "tokens": ["color.ink", "font.body"]
+    },
+    {
+      "id": "20:2", "name": "Testimonial B", "page": "About", "type": "FRAME",
+      "width": 322, "height": 118,
+      "children": [ { "type": "TEXT", "name": "Quote" }, { "type": "TEXT", "name": "Name" }, { "type": "FRAME", "name": "Avatar" } ],
+      "tokens": ["color.ink", "font.body"]
+    },
+    {
+      "id": "30:1", "name": "Odd one out", "page": "About", "type": "FRAME",
+      "width": 200, "height": 60,
+      "children": [ { "type": "TEXT", "name": "Label" } ],
+      "tokens": ["color.blue"]
+    }
+  ]
+}

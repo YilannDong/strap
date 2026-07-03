@@ -41,6 +41,8 @@ const DEFAULTS = {
     offScaleRadius: 'warn', // border-radius values not on the radius scale
     unlinkedComponent: 'error', // JSX element that shadows a registry component
     duplicateComponent: 'warn', // CSS rule whose token footprint matches a registry component (advisory)
+    figmaDuplicateComponent: 'warn', // Figma raw frame that matches a registry component (advisory)
+    figmaDuplicateFrame: 'warn', // two+ near-identical raw frames that should be one component (advisory)
   },
   // Values that are always allowed even if they look "raw".
   allow: {
