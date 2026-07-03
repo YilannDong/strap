@@ -57,3 +57,39 @@ test('does NOT flag camelCase registry names as redefined components', () => {
 test('respects allowlisted colors', () => {
   assert.equal(scan('a.css', '.x{color:transparent}').length, 0);
 });
+
+// --- duplicate radar (advisory) ---------------------------------------------
+// The starter "card" component consumes color.line, color.white, radius.card, shadow.md.
+const cardLookalike =
+  '.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-card);box-shadow:var(--shadow-md)}';
+
+test('flags a CSS rule that rebuilds a registry component (warn only)', () => {
+  const v = find('a.css', cardLookalike, 'duplicateComponent');
+  assert.ok(v, 'expected a duplicateComponent violation');
+  assert.equal(v.severity, 'warn');
+  assert.match(v.message, /"card"/);
+});
+
+test('does NOT flag the component\'s own named styles', () => {
+  const own = cardLookalike.replace('.panel', '.card');
+  assert.ok(!rules('a.css', own).includes('duplicateComponent'));
+});
+
+test('does NOT flag a rule that shares too few of a component\'s tokens', () => {
+  // only one card token -> below the shared/coverage threshold
+  assert.ok(!rules('a.css', '.thing{background:var(--white)}').includes('duplicateComponent'));
+});
+
+test('duplicate radar is CSS-only (not TSX, to avoid noise)', () => {
+  assert.ok(!rules('a.tsx', cardLookalike).includes('duplicateComponent'));
+});
+
+test('duplicate radar is not fooled by a component name in a comment', () => {
+  const withComment = '/* really a Card, honest */\n' + cardLookalike;
+  assert.ok(rules('a.css', withComment).includes('duplicateComponent'));
+});
+
+test('duplicate radar can be turned off via config', () => {
+  const off = { ...cfg, rules: { ...cfg.rules, duplicateComponent: 'off' } };
+  assert.equal(scanFile('a.css', cardLookalike, off).filter((v) => v.rule === 'duplicateComponent').length, 0);
+});

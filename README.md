@@ -327,12 +327,32 @@ python3 scripts/preview-server.py 5173     # → http://127.0.0.1:5173
 {
   "rules": {
     "rawHex": "error", "rawRgb": "error", "rawFont": "error",
-    "offScaleSpacing": "warn", "offScaleRadius": "warn", "unlinkedComponent": "error"
+    "offScaleSpacing": "warn", "offScaleRadius": "warn", "unlinkedComponent": "error",
+    "duplicateComponent": "warn"
   }
 }
 ```
 
 Set any rule to `"off"` to disable, `"warn"` to advise, `"error"` to block.
+
+### Duplicate radar (`duplicateComponent`)
+
+`unlinkedComponent` only catches a component re-declared by **name**. The duplicate radar catches the
+harder case: a hand-written CSS rule that *is* a design-system component but was never named one —
+a `.panel` that uses the exact same tokens as your `Card`. It fingerprints each rule's **token
+footprint** and, when a rule reuses ≥60% (and ≥3) of a registry component's `consumes` tokens without
+naming it, warns:
+
+```
+.surface-box  warn  ".surface-box" reuses 4/4 of the "card" component's tokens
+              (color.line, color.white, radius.card, …). If this is a card,
+              use the DS component instead of rebuilding it.  duplicateComponent
+```
+
+It's **advisory (`warn`-only) by design** — semantic similarity is fuzzy, so it never blocks a write;
+it keeps the deterministic core (off-spec values, named re-declarations) trustworthy while surfacing
+look-alikes for a human to judge. Set it to `"off"` to silence, or `"error"` if your team wants it to
+block.
 
 ## Status & roadmap
 
@@ -342,15 +362,14 @@ Set any rule to `"off"` to disable, `"warn"` to advise, `"error"` to block.
   as bound **Figma Variables** (see above).
 - ⚠️ **Native Code Connect publish** needs a Dev/Full seat on an Org/Enterprise plan; Strap caches
   the link locally in `.strap/code-connect.json` on any plan.
+- ✅ **Duplicate radar (code)** — a heuristic, *advisory* (`warn`-only) rule that flags a hand-written
+  CSS rule whose token footprint matches an existing registry component but that was never named one
+  (the `<div>`-that's-really-a-`Card` case named re-declaration detection misses). Stays advisory to
+  keep the deterministic core trustworthy — see **[Duplicate radar](#duplicate-radar-duplicatecomponent)**.
 - The turn-key bidirectional runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
 
 **Exploring (not built yet):**
 
-- 🔭 **Duplicate radar (code)** — a heuristic, *advisory* (`warn`-only) rule that flags a new
-  element closely matching an existing registry component, to catch the case Strap misses today:
-  a hand-written `<div>` that *looks like* a `Callout` but isn't named one. Strap currently catches
-  only **named** re-declarations; semantic similarity is fuzzy by nature, so this would stay
-  advisory to keep the deterministic core trustworthy.
 - 🔭 **Figma-side duplicate detection** — Strap is code-side only; spotting duplicate *frames* in
   Figma would need a separate plugin/MCP job. Likely to **integrate an existing Figma lint tool**
   rather than rebuild it.

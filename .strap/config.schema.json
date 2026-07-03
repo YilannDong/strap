@@ -15,7 +15,8 @@
         "rawFont": { "enum": ["error", "warn", "off"] },
         "offScaleSpacing": { "enum": ["error", "warn", "off"] },
         "offScaleRadius": { "enum": ["error", "warn", "off"] },
-        "unlinkedComponent": { "enum": ["error", "warn", "off"] }
+        "unlinkedComponent": { "enum": ["error", "warn", "off"] },
+        "duplicateComponent": { "enum": ["error", "warn", "off"] }
       }
     },
     "allow": {
