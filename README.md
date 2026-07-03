@@ -338,21 +338,39 @@ Set any rule to `"off"` to disable, `"warn"` to advise, `"error"` to block.
 ### Duplicate radar (`duplicateComponent`)
 
 `unlinkedComponent` only catches a component re-declared by **name**. The duplicate radar catches the
-harder case: a hand-written CSS rule that *is* a design-system component but was never named one —
-a `.panel` that uses the exact same tokens as your `Card`. It fingerprints each rule's **token
-footprint** and, when a rule reuses ≥60% (and ≥3) of a registry component's `consumes` tokens without
-naming it, warns:
+harder case: something that *is* a design-system component but was never named one — a `.panel` that
+uses the exact same tokens as your `Card`. It fingerprints the **token footprint** and, when it reuses
+≥60% (and ≥3) of a registry component's `consumes` tokens without naming it, warns:
 
 ```
-.surface-box  warn  ".surface-box" reuses 4/4 of the "card" component's tokens
+.surface-box  warn  CSS rule ".surface-box" reuses 4/4 of the "card" component's tokens
               (color.line, color.white, radius.card, …). If this is a card,
               use the DS component instead of rebuilding it.  duplicateComponent
 ```
 
+It scans **four surfaces** — because look-alikes hide in more than CSS:
+
+| Surface | Example it catches |
+|---|---|
+| CSS / SCSS rule | `.panel { background: var(--white); … }` |
+| styled-components / `css\`\`` | ``const Panel = styled.div`background: var(--white); …` `` |
+| inline `style={{}}` | `<div style={{ background: 'var(--white)', … }}>` |
+| `className` / Tailwind | `<div className="bg-white border-line rounded-card shadow-md">` |
+
+Tailwind utilities are mapped to tokens by leaf name (`rounded-card` → `radius.card`) and **gated to
+tokens your DS actually defines**, so Tailwind's own defaults (`shadow-lg`…) don't create noise;
+arbitrary values (`bg-[var(--white)]`) are read directly. Component **instances** (`<Card>`,
+`styled(Card)`) and anything named after the component (a `.card` selector, a `card` class) are
+skipped — that's intentional usage.
+
 It's **advisory (`warn`-only) by design** — semantic similarity is fuzzy, so it never blocks a write;
 it keeps the deterministic core (off-spec values, named re-declarations) trustworthy while surfacing
-look-alikes for a human to judge. Set it to `"off"` to silence, or `"error"` if your team wants it to
-block.
+look-alikes for a human to judge. Set it to `"off"` to silence, or `"error"` to block.
+
+> **Honest limit:** the JSX/Tailwind passes are **regex-based, not a full AST** — they read each
+> element's own `style`/`className`/`styled` block, not styles inherited from ancestor selectors or
+> composed via helper functions. It's a conservative net (favoring few false positives over total
+> recall); per-element AST-grade fingerprinting is the future "weeks" version.
 
 ### Figma duplicate radar (`strap figma-audit`)
 
@@ -393,9 +411,10 @@ skipped. For continuous in-canvas linting, dedicated Figma plugins (Design Lint,
 - ⚠️ **Native Code Connect publish** needs a Dev/Full seat on an Org/Enterprise plan; Strap caches
   the link locally in `.strap/code-connect.json` on any plan.
 - ✅ **Duplicate radar (code)** — a heuristic, *advisory* (`warn`-only) rule that flags a hand-written
-  CSS rule whose token footprint matches an existing registry component but that was never named one
-  (the `<div>`-that's-really-a-`Card` case named re-declaration detection misses). Stays advisory to
-  keep the deterministic core trustworthy — see **[Duplicate radar](#duplicate-radar-duplicatecomponent)**.
+  look-alike whose token footprint matches an existing registry component but that was never named one
+  (the `<div>`-that's-really-a-`Card` case named re-declaration detection misses). Scans **CSS,
+  styled-components, inline `style`, and `className`/Tailwind**. Stays advisory to keep the
+  deterministic core trustworthy — see **[Duplicate radar](#duplicate-radar-duplicatecomponent)**.
 - ✅ **Figma duplicate radar** — `strap figma-audit` + the **strap-figma-audit** skill: walks the
   canvas via the Figma MCP and flags raw frames that are really a library component, plus clusters of
   near-identical frames. Advisory, MCP-driven (no Figma plugin) — see

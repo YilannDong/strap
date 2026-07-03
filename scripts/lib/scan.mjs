@@ -62,6 +62,101 @@ function tokensInBlock(body) {
   return keys;
 }
 
+// --- JSX / CSS-in-JS extraction (hardening: catch the raw <div> the CSS pass misses) ---
+// Tailwind utility prefix -> token group. A class like `bg-white` -> color.white,
+// `rounded-card` -> radius.card, `shadow-md` -> shadow.md, `border-line` -> color.line.
+const TW_PREFIX_GROUP = [
+  [/^bg-/, 'color'], [/^text-/, 'color'], [/^ring-/, 'color'], [/^fill-/, 'color'],
+  [/^stroke-/, 'color'], [/^border-(?=[a-z])/, 'color'],
+  [/^rounded-/, 'radius'], [/^shadow-/, 'shadow'], [/^font-/, 'font'],
+  [/^(?:gap|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr)-/, 'space'],
+];
+// Map Tailwind utility classes to canonical token keys, but ONLY keep keys the
+// design system actually defines (`allKeys`) — this gates out Tailwind's own
+// defaults (rounded-md, shadow-lg…) so the radar stays precise, not noisy.
+function tailwindTokens(className, allKeys) {
+  const keys = new Set();
+  for (const cls of String(className).split(/\s+/)) {
+    if (!cls) continue;
+    for (const [re, group] of TW_PREFIX_GROUP) {
+      const mm = re.exec(cls);
+      if (!mm) continue;
+      const leaf = cls.slice(mm[0].length).toLowerCase();
+      if (leaf && !leaf.startsWith('[')) { // `[var(--x)]` arbitrary values are caught by tokensInBlock
+        const key = `${group}.${leaf}`;
+        if (allKeys.has(key)) keys.add(key);
+      }
+      break;
+    }
+  }
+  return keys;
+}
+
+// Return the full opening tag `<tag ...>` starting at tagStart, tolerant of `{}`
+// expressions and quoted strings in attributes.
+function openingTag(text, tagStart) {
+  let depth = 0, quote = null;
+  for (let i = tagStart; i < text.length; i++) {
+    const ch = text[i];
+    if (quote) { if (ch === quote) quote = null; continue; }
+    if (ch === '"' || ch === "'" || ch === '`') { quote = ch; continue; }
+    if (ch === '{') depth++;
+    else if (ch === '}') depth--;
+    else if (ch === '>' && depth <= 0) return text.slice(tagStart, i + 1);
+  }
+  return text.slice(tagStart, Math.min(text.length, tagStart + 4000));
+}
+
+// Per-element token footprints from inline style + className (incl. Tailwind).
+const CLASSNAME_RE = /className\s*=\s*(?:"([^"]*)"|'([^']*)'|\{\s*[`"']([^`"']*)[`"']\s*\})/;
+const INLINE_STYLE_RE = /style=\{\{([\s\S]*?)\}\}/;
+function jsxElementFootprints(text, allKeys) {
+  const out = [];
+  const TAG_RE = /<([A-Za-z][\w.]*)/g;
+  let t;
+  while ((t = TAG_RE.exec(text))) {
+    const region = openingTag(text, t.index);
+    const tokens = new Set();
+    const sm = INLINE_STYLE_RE.exec(region);
+    if (sm) for (const k of tokensInBlock(sm[1])) tokens.add(k);
+    const cm = CLASSNAME_RE.exec(region);
+    const className = cm ? (cm[1] || cm[2] || cm[3] || '') : '';
+    if (className) {
+      for (const k of tokensInBlock(className)) tokens.add(k);
+      for (const k of tailwindTokens(className, allKeys)) tokens.add(k);
+    }
+    if (tokens.size) out.push({ name: t[1], className, index: t.index, tokens });
+  }
+  return out;
+}
+
+// styled-components / css`` template literals -> token footprint.
+const STYLED_RE = /(?:const|let|var)\s+([A-Za-z]\w*)\s*=\s*styled(?:\.[a-z][\w]*|\(\s*([A-Za-z]\w*)\s*\))?[^`]*`([\s\S]*?)`/g;
+function styledFootprints(text) {
+  const out = [];
+  let s;
+  STYLED_RE.lastIndex = 0;
+  while ((s = STYLED_RE.exec(text))) {
+    out.push({ name: s[1], base: s[2] || null, index: s.index, tokens: tokensInBlock(s[3]) });
+  }
+  return out;
+}
+
+// Does a name/selector string already claim to be this component?
+function namesComponent(str, compName) {
+  const re = new RegExp(`\\b${String(compName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+  return re.test(String(str || ''));
+}
+
+// Stricter check for a className: is the component named as a *standalone class*
+// (`card`, `card--elevated`, `card__body`) rather than merely embedded inside a
+// token utility like `rounded-card`? Utility classes carry token leaf names, so a
+// plain substring match here would wrongly suppress every Tailwind look-alike.
+function classClaimsComponent(className, compName) {
+  const cn = String(compName).toLowerCase();
+  return String(className).split(/\s+/).some((c) => c.toLowerCase().split(/[-_:]/)[0] === cn);
+}
+
 function add(out, cfg, rule, text, index, message, fix) {
   const s = sev(cfg, rule);
   if (s === 'off') return;
@@ -82,6 +177,7 @@ export function scanFile(filePath, text, cfg) {
   const out = [];
   if (text.slice(0, 400).includes(GENERATED_MARKER)) return out;
   const isStyle = /\.(css|scss|sass|less)$/.test(filePath);
+  const isJsx = /\.(jsx|tsx|vue|svelte)$/.test(filePath);
   const allowColors = new Set((cfg.allow.colors || []).map((c) => normalizeHex(c)));
 
   // 1. Raw hex colors -> must map to a token.
@@ -179,12 +275,13 @@ export function scanFile(filePath, text, cfg) {
     }
   }
 
-  // 7. Duplicate radar (advisory): a CSS rule whose token footprint matches an
+  // 7. Duplicate radar (advisory): something whose token footprint matches an
   //    existing registry component, but that isn't the component (different name).
-  //    Catches the "hand-written .panel that's really a Card" case that the
+  //    Catches the "hand-written thing that's really a Card" case that the
   //    `unlinkedComponent` rule — which only spots *named* re-declarations — misses.
-  //    Heuristic + warn-only by design, to keep the deterministic core trustworthy.
-  if (isStyle && sev(cfg, 'duplicateComponent') !== 'off' && (cfg.registry.components || []).length) {
+  //    CSS pass = rule blocks; JSX pass = styled-components / inline style / Tailwind
+  //    (the raw <div> the CSS pass can't see). Heuristic + warn-only by design.
+  if ((isStyle || isJsx) && sev(cfg, 'duplicateComponent') !== 'off' && (cfg.registry.components || []).length) {
     // Pre-compute each component's canonical token footprint once.
     const footprints = (cfg.registry.components || [])
       .map((c) => ({
@@ -193,15 +290,8 @@ export function scanFile(filePath, text, cfg) {
       }))
       .filter((f) => f.keys.size >= DUP_MIN_CONSUMES);
 
-    const BLOCK_RE = /([^{}]+)\{([^{}]*)\}/g;
-    while (footprints.length && (m = BLOCK_RE.exec(text))) {
-      // Strip comments so a token name mentioned in a comment (e.g. "really a Card")
-      // can't leak into the selector text or the component-name skip check.
-      const selectorRaw = m[1].replace(/\/\*[\s\S]*?\*\//g, '').split(/[};]/).pop().trim();
-      if (!selectorRaw || selectorRaw.startsWith('@')) continue; // skip at-rules
-      const used = tokensInBlock(m[2]);
-      if (used.size < DUP_MIN_SHARED) continue;
-
+    // Best-matching component for a used-token set (highest coverage, then shared).
+    const bestMatch = (used) => {
       let best = null;
       for (const f of footprints) {
         const { shared, coverage, isMatch } = matchFootprint(used, f.keys);
@@ -210,20 +300,54 @@ export function scanFile(filePath, text, cfg) {
           best = { comp: f.comp, keys: f.keys, shared, coverage };
         }
       }
-      if (!best) continue;
-
-      // Skip when the selector already names the component (its own styles), e.g.
-      // `.card`, `.Card`, `.card--elevated` for the "card" component.
-      const nameRe = new RegExp(`\\b${best.comp.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-      if (nameRe.test(selectorRaw)) continue;
-
-      const firstTok = selectorRaw.split(/\s/)[0];
-      const selPos = firstTok ? m[1].indexOf(firstTok) : -1;
-      const idx = m.index + (selPos >= 0 ? selPos : Math.max(0, m[1].search(/\S/)));
+      return best;
+    };
+    const emit = (used, best, kind, name, idx) => {
       const sample = [...best.keys].filter((k) => used.has(k)).slice(0, 3).join(', ');
       add(out, cfg, 'duplicateComponent', text, idx,
-        `"${selectorRaw}" reuses ${best.shared}/${best.keys.size} of the "${best.comp.name}" component's tokens (${sample}${best.shared > 3 ? ', …' : ''}). If this is a ${best.comp.name}, use the DS component instead of rebuilding it.`,
+        `${kind} ${name} reuses ${best.shared}/${best.keys.size} of the "${best.comp.name}" component's tokens (${sample}${best.shared > 3 ? ', …' : ''}). If this is a ${best.comp.name}, use the DS component instead of rebuilding it.`,
         best.comp.import || null);
+    };
+
+    // 7a. CSS rule blocks.
+    if (isStyle && footprints.length) {
+      const BLOCK_RE = /([^{}]+)\{([^{}]*)\}/g;
+      while ((m = BLOCK_RE.exec(text))) {
+        // Strip comments so a token name mentioned in a comment (e.g. "really a Card")
+        // can't leak into the selector text or the component-name skip check.
+        const selectorRaw = m[1].replace(/\/\*[\s\S]*?\*\//g, '').split(/[};]/).pop().trim();
+        if (!selectorRaw || selectorRaw.startsWith('@')) continue; // skip at-rules
+        const used = tokensInBlock(m[2]);
+        if (used.size < DUP_MIN_SHARED) continue;
+        const best = bestMatch(used);
+        if (!best || namesComponent(selectorRaw, best.comp.name)) continue;
+        const firstTok = selectorRaw.split(/\s/)[0];
+        const selPos = firstTok ? m[1].indexOf(firstTok) : -1;
+        const idx = m.index + (selPos >= 0 ? selPos : Math.max(0, m[1].search(/\S/)));
+        emit(used, best, 'CSS rule', `"${selectorRaw}"`, idx);
+      }
+    }
+
+    // 7b. JSX / CSS-in-JS: styled-components, inline style, className/Tailwind.
+    if (isJsx && footprints.length) {
+      const allKeys = new Set();
+      for (const f of footprints) for (const k of f.keys) allKeys.add(k);
+
+      for (const s of styledFootprints(text)) {
+        if (s.tokens.size < DUP_MIN_SHARED) continue;
+        if (s.base && cfg.registryNames.has(s.base)) continue; // styled(Card) extends it — fine
+        const best = bestMatch(s.tokens);
+        if (!best || namesComponent(s.name, best.comp.name)) continue;
+        emit(s.tokens, best, 'styled component', `"${s.name}"`, s.index);
+      }
+
+      for (const e of jsxElementFootprints(text, allKeys)) {
+        if (e.tokens.size < DUP_MIN_SHARED) continue;
+        if (cfg.registryNames.has(e.name)) continue; // already a DS component instance
+        const best = bestMatch(e.tokens);
+        if (!best || namesComponent(e.name, best.comp.name) || classClaimsComponent(e.className, best.comp.name)) continue;
+        emit(e.tokens, best, 'element', `<${e.name}>`, e.index);
+      }
     }
   }
 
