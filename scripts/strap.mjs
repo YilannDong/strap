@@ -14,7 +14,8 @@ import { join, resolve, relative, extname } from 'node:path';
 import { loadConfig, findProjectRoot } from './lib/config.mjs';
 import { importDesignSystem } from './lib/import.mjs';
 import { scanFile, maxSeverity, SEV_RANK } from './lib/scan.mjs';
-import { formatFile, formatSummary } from './lib/report.mjs';
+import { auditFrames } from './lib/figma.mjs';
+import { formatFile, formatSummary, formatFigmaFindings } from './lib/report.mjs';
 
 const cmd = process.argv[2];
 const rest = process.argv.slice(3);
@@ -198,6 +199,37 @@ Run the skill, or wire these tools yourself, then validate with: strap audit
 Full bidirectional runbook (pull + Code Connect link-back): docs/figma-roundtrip.md`);
 }
 
+// ---- figma-audit -------------------------------------------------------------
+// Duplicate radar for the Figma canvas. Reads a frame snapshot (written by the
+// strap-figma-audit skill via the Figma MCP) and reports look-alike / duplicate
+// frames. Default snapshot: .strap/figma-frames.json.
+function figmaAuditCmd() {
+  const cfg = loadConfig();
+  const snapPath = rest[0] ? resolve(rest[0]) : join(cfg.artifactsDir, 'figma-frames.json');
+  if (!existsSync(snapPath)) {
+    console.error(`Strap: no frame snapshot at ${relative(cfg.root, snapPath)}.\n` +
+      `Run the strap-figma-audit skill first (it walks Figma via the MCP and writes it).`);
+    process.exit(1);
+  }
+  let snap;
+  try { snap = JSON.parse(readFileSync(snapPath, 'utf8')); } catch (e) {
+    console.error(`Strap: could not parse ${relative(cfg.root, snapPath)}: ${e.message}`);
+    process.exit(1);
+  }
+  const frames = Array.isArray(snap) ? snap : (snap.frames || []);
+  const findings = auditFrames(frames, cfg);
+  const out = formatFigmaFindings(findings);
+  if (out) console.log(out + '\n');
+  const errors = findings.filter((v) => v.severity === 'error').length;
+  const warns = findings.filter((v) => v.severity === 'warn').length;
+  const parts = [
+    errors ? `${errors} error${errors === 1 ? '' : 's'}` : '0 errors',
+    warns ? `${warns} warning${warns === 1 ? '' : 's'}` : '0 warnings',
+  ];
+  console.log(`Strap Figma QA: ${parts.join(', ')} across ${frames.length} frame(s).`);
+  process.exit(errors ? 1 : 0);
+}
+
 // ---- dispatch ----------------------------------------------------------------
 try {
   if (cmd === 'check') {
@@ -215,6 +247,8 @@ try {
     tokensCmd();
   } else if (cmd === 'sync') {
     syncHelp();
+  } else if (cmd === 'figma-audit') {
+    figmaAuditCmd();
   } else if (cmd === 'validate') {
     const cfg = loadConfig();
     const files = rest.map((f) => resolve(f));
@@ -237,6 +271,7 @@ Usage:
   strap sync               How to refresh artifacts from Figma
   strap validate <files>   Validate specific files
   strap audit              Validate the whole project
+  strap figma-audit [snap] Duplicate radar for the Figma canvas (.strap/figma-frames.json)
   strap check              Hook mode (reads PostToolUse payload on stdin)`);
     process.exit(0);
   }

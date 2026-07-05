@@ -21,6 +21,17 @@ export function formatFile(filePath, violations) {
   return lines.join('\n');
 }
 
+/** Pretty-print Figma-radar findings (frame-located, no line:col). */
+export function formatFigmaFindings(findings) {
+  if (!findings.length) return '';
+  const lines = [C.bold('Figma canvas')];
+  for (const v of findings) {
+    const fix = v.fix ? C.green(`  → ${v.fix}`) : '';
+    lines.push(`  ${TAG[v.severity]}  ${C.dim(v.loc)}  ${v.message}${fix}  ${C.dim(v.rule)}`);
+  }
+  return lines.join('\n');
+}
+
 export function formatSummary(fileResults) {
   let errors = 0;
   let warns = 0;

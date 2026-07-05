@@ -16,7 +16,9 @@
         "offScaleSpacing": { "enum": ["error", "warn", "off"] },
         "offScaleRadius": { "enum": ["error", "warn", "off"] },
         "unlinkedComponent": { "enum": ["error", "warn", "off"] },
-        "duplicateComponent": { "enum": ["error", "warn", "off"] }
+        "duplicateComponent": { "enum": ["error", "warn", "off"] },
+        "figmaDuplicateComponent": { "enum": ["error", "warn", "off"] },
+        "figmaDuplicateFrame": { "enum": ["error", "warn", "off"] }
       }
     },
     "allow": {

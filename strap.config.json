@@ -10,7 +10,9 @@
     "offScaleSpacing": "warn",
     "offScaleRadius": "warn",
     "unlinkedComponent": "error",
-    "duplicateComponent": "warn"
+    "duplicateComponent": "warn",
+    "figmaDuplicateComponent": "warn",
+    "figmaDuplicateFrame": "warn"
   },
   "allow": {
     "colors": ["transparent", "currentColor", "inherit", "none"],
