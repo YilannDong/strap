@@ -80,8 +80,54 @@ test('does NOT flag a rule that shares too few of a component\'s tokens', () => 
   assert.ok(!rules('a.css', '.thing{background:var(--white)}').includes('duplicateComponent'));
 });
 
-test('duplicate radar is CSS-only (not TSX, to avoid noise)', () => {
-  assert.ok(!rules('a.tsx', cardLookalike).includes('duplicateComponent'));
+test('does not flag a raw CSS string in TSX (only styled / inline / className)', () => {
+  // a plain CSS-text string that isn't in a styled`` template or JSX attrs stays quiet
+  assert.ok(!rules('a.tsx', `const css = \`${cardLookalike}\`.length`).includes('duplicateComponent'));
+});
+
+// --- hardening: JSX / CSS-in-JS / Tailwind ----------------------------------
+test('flags a styled-component that rebuilds a registry component', () => {
+  const src = 'const Panel = styled.div`background:var(--white);border:1px solid var(--line);border-radius:var(--radius-card);box-shadow:var(--shadow-md)`;';
+  const v = find('a.tsx', src, 'duplicateComponent');
+  assert.ok(v, 'expected a duplicateComponent finding');
+  assert.equal(v.severity, 'warn');
+  assert.match(v.message, /styled component "Panel".*"card"/);
+});
+
+test('flags an inline style={{}} element that rebuilds a component', () => {
+  const src = "<div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-md)' }} />";
+  const v = find('a.tsx', src, 'duplicateComponent');
+  assert.ok(v);
+  assert.match(v.message, /element <div>.*"card"/);
+});
+
+test('flags a Tailwind className that rebuilds a component', () => {
+  const src = '<div className="bg-white border-line rounded-card shadow-md" />';
+  const v = find('a.tsx', src, 'duplicateComponent');
+  assert.ok(v, 'expected Tailwind utilities to map to card tokens');
+  assert.match(v.message, /"card"/);
+});
+
+test('catches Tailwind arbitrary [var()] values too', () => {
+  const src = '<div className="bg-[var(--white)] border-[var(--line)] rounded-[var(--radius-card)] shadow-[var(--shadow-md)]" />';
+  assert.ok(rules('a.tsx', src).includes('duplicateComponent'));
+});
+
+test('does NOT flag styled(Card) — extending a DS component is fine', () => {
+  // registry names in the starter are lowercase; simulate a PascalCase registry entry
+  const over = { ...cfg, registryNames: new Set([...cfg.registryNames, 'Card']) };
+  const src = 'const Fancy = styled(Card)`background:var(--white);border:1px solid var(--line);border-radius:var(--radius-card);box-shadow:var(--shadow-md)`;';
+  assert.ok(!scanFile('a.tsx', src, over).some((v) => v.rule === 'duplicateComponent'));
+});
+
+test('does NOT flag an element that names the component in className', () => {
+  const src = '<div className="card bg-white border-line rounded-card shadow-md" />';
+  assert.ok(!rules('a.tsx', src).includes('duplicateComponent'));
+});
+
+test('does NOT flag a JSX element below the token threshold', () => {
+  const src = '<div className="bg-white text-ink" />'; // 2 tokens < 3
+  assert.ok(!rules('a.tsx', src).includes('duplicateComponent'));
 });
 
 test('duplicate radar is not fooled by a component name in a comment', () => {
