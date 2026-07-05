@@ -1,0 +1,83 @@
+/* Cover slide — "Design System · BPM · Lowcode V2".
+   Implemented from Figma (node 1:5), every value bound to a design token. */
+.cover {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 1600 / 960;
+  min-height: 20rem;
+  display: flex;
+  flex-direction: column;
+  padding: 11.4% 4% 6% 11.4%;
+  background: var(--navy);
+  font-family: var(--font-display);
+  overflow: hidden;
+}
+
+.cover__badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-24);
+  border-radius: var(--radius-10);
+  background: var(--gold);
+  color: var(--navy);
+  font-family: var(--font-poppins);
+  font-weight: 700;
+  font-size: clamp(14px, 2vw, 32px);
+  line-height: 1;
+}
+
+.cover__title {
+  margin: 3% 0 0;
+  color: var(--white);
+  font-weight: 700;
+  font-size: clamp(40px, 8.1vw, 130px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+.cover__title span { display: block; }
+.cover__title .cover__title--sub { font-size: clamp(34px, 6.9vw, 110px); }
+
+.cover__footer {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-24);
+}
+
+.cover__meta {
+  display: flex;
+  flex-direction: column;
+}
+.cover__credits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  color: var(--grey-400);
+  font-weight: 500;
+  font-size: clamp(16px, 2.5vw, 40px);
+  line-height: 1.1;
+}
+.cover__date {
+  margin-top: var(--space-16);
+  color: var(--white);
+  font-weight: 400;
+  font-size: clamp(13px, 2vw, 32px);
+}
+
+.cover__status {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-24) var(--space-64);
+  border-radius: var(--radius-full);
+  background: var(--blue-600);
+  color: var(--white);
+  font-weight: 700;
+  font-size: clamp(16px, 2.2vw, 35px);
+  line-height: 1;
+}
