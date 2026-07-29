@@ -416,18 +416,24 @@ node scripts/strap.mjs evaluate --figma .strap/figma-frames.json   # + Figma fra
 - **Promotion** — a token-footprint pattern that recurs **≥ `promoteMin`** times but isn't a
   component yet: *"8× {color.line, color.white, radius.card, shadow.md} — promote to a component?"*
   (Patterns that already match a registry component are skipped — that's the duplicate radar's job.)
-- **Retirement** — a registry component with **≤ `retireMax`** total usages (code `<Component>` +
-  Figma instances): *"`badge` — 1 use — retire?"*
+- **Retirement** — a registry component that is **barely used** (≤ `retireMax` total usages: code
+  `<Component>` + Figma instances) **or stale** (last used more than `staleMonths` ago, dated from
+  git history): *"`badge` — 1 use — last used ~8mo ago — retire?"*
 
 It's **advisory and never fails a build** — Strap proposes, you decide (same model as every radar).
 Thresholds live under `evaluate` in `strap.config.json` (`promoteMin` 3, `retireMax` 1,
-`minFootprint` 3).
+`minFootprint` 3, `staleMonths` 6).
 
-**Honest limits:** **counts, not time** — "used once in *six months*" needs history; v1 reports
-current counts only. Retirement usage is best-effort (resolves a component's code name via Code
-Connect, else PascalCase). Cross-surface clustering needs consistent token-leaf naming (a CSS
-`--warn-tint` and a Figma `warnTint` won't merge). Temporal dating, auto-triggering after a sprint,
-and acting on your decision (scaffold / remove) are deferred.
+**How recency works:** Strap dates each component's last use with
+`git log -1 -G'<Component'` — the last commit whose diff touched a usage. Git access is the one
+impure corner ([scripts/lib/git.mjs](scripts/lib/git.mjs)); the analysis engine stays pure (dates
+are passed in). Outside a git repo, recency is skipped and it falls back to counts.
+
+**Honest limits:** recency is *last-touched*, not a true rolling "uses in the last 6 months" window;
+retirement usage is best-effort (resolves a component's code name via Code Connect, else PascalCase);
+cross-surface clustering needs consistent token-leaf naming (a CSS `--warn-tint` and a Figma
+`warnTint` won't merge). Auto-triggering after a sprint and acting on your decision (scaffold /
+remove) are still deferred.
 
 ## Status & roadmap
 
@@ -447,15 +453,16 @@ and acting on your decision (scaffold / remove) are deferred.
   near-identical frames. Advisory, MCP-driven (no Figma plugin) — see
   **[Figma duplicate radar](#figma-duplicate-radar-strap-figma-audit)**.
 - ✅ **Component lifecycle (`strap evaluate`)** — advisory radar that proposes **promotions**
-  (recurring patterns → components) and **retirements** (barely-used components); counts-only v1.
-  Strap surfaces, the human decides — see **[Component lifecycle](#component-lifecycle-strap-evaluate)**.
+  (recurring patterns → components) and **retirements** (barely-used **or stale** components, dated
+  from git history). Strap surfaces, the human decides — see
+  **[Component lifecycle](#component-lifecycle-strap-evaluate)**.
 - The turn-key bidirectional runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
 
 **Exploring (not built yet):**
 
-- 🔭 **Lifecycle temporal axis** — date component usage from git history ("last used 6 months ago"),
-  auto-trigger `evaluate` after each sprint (CI), and optionally act on an approved proposal
-  (scaffold the promoted component / remove the retired one).
+- 🔭 **Lifecycle automation** — auto-trigger `evaluate` after each sprint (CI), a true rolling
+  "uses in the last N months" window, and optionally acting on an approved proposal (scaffold the
+  promoted component / remove the retired one).
 - 🔭 **Tighter Figma ↔ code round-trips** — richer bidirectional sync (Code Connect publish on any
   plan, continuous drift detection between canvas and code).
 - 🔭 **Deeper Figma dedup** — the current radar is a conservative first pass; per-element AST-grade

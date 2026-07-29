@@ -7,11 +7,26 @@
 import { canonFromConsumes, matchFootprint, DUP_MIN_CONSUMES } from './fingerprint.mjs';
 import { cssRuleFootprints, jsxElementFootprints, styledFootprints, locate } from './scan.mjs';
 
-const DEFAULTS = { promoteMin: 3, retireMax: 1, minFootprint: 3 };
+const DEFAULTS = { promoteMin: 3, retireMax: 1, minFootprint: 3, staleMonths: 6 };
 const opts = (cfg) => ({ ...DEFAULTS, ...((cfg && cfg.evaluate) || {}) });
 
 const pascal = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const MS_PER_MONTH = 30.44 * 24 * 3600 * 1000;
+function monthsAgo(iso, now) {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t) || !now) return null;
+  return Math.max(0, (now - t) / MS_PER_MONTH);
+}
+
+// Resolve a registry component's code name (prefer Code Connect, else PascalCase).
+// PascalCase names never collide with HTML tags, so `<Name` counting is safe.
+export function resolveCodeName(comp, cfg) {
+  const ccNames = Object.values((cfg.codeConnect && cfg.codeConnect.map) || {})
+    .map((v) => v && v.name).filter(Boolean);
+  return ccNames.find((n) => n.toLowerCase() === comp.name.toLowerCase()) || pascal(comp.name);
+}
 
 // Every token-footprint "unit" a file contributes (CSS rules + JSX elements + styled).
 function codeUnitsFromFile(relPath, text, allKeys) {
@@ -42,9 +57,11 @@ function countCodeUsage(name, files) {
  * @param {Array<{path:string,text:string}>} files  the shipped code corpus
  * @param {Array} frames  optional Figma frame snapshot (see .strap/figma-frames.json)
  * @param {object} cfg     loaded Strap config (uses cfg.registry, cfg.codeConnect, cfg.evaluate)
+ * @param {{componentDates?:Object, now?:number}} extra  optional git recency: registry-name → ISO
+ *        last-used date, plus a `now` timestamp. Passed in (not read) so evaluate stays pure.
  * @returns {{promotions:Array, retirements:Array}}
  */
-export function evaluate(files, frames, cfg) {
+export function evaluate(files, frames, cfg, extra = {}) {
   const o = opts(cfg);
   const components = (cfg.registry && cfg.registry.components) || [];
   const footprints = components
@@ -78,27 +95,34 @@ export function evaluate(files, frames, cfg) {
   }
   promotions.sort((a, b) => b.count - a.count);
 
-  // ---- Retirement: registry components with <= retireMax total usages ----
-  // Resolve each component's code name (prefer Code Connect, else PascalCase). PascalCase
-  // names never collide with HTML tags, so <Name counting is safe.
-  const ccNames = Object.values((cfg.codeConnect && cfg.codeConnect.map) || {})
-    .map((v) => v && v.name).filter(Boolean);
-  const codeNameOf = (comp) => ccNames.find((n) => n.toLowerCase() === comp.name.toLowerCase()) || pascal(comp.name);
-
+  // ---- Retirement: barely-used OR stale registry components ----
+  // A candidate is low-use (<= retireMax total usages) OR stale (last used longer
+  // ago than staleMonths) — the temporal axis catches "still there but nobody's
+  // touched it in months." Recency comes from git via `extra.componentDates`.
+  const dates = extra.componentDates || {};
+  const now = extra.now || null;
   const retirements = [];
   for (const comp of components) {
-    const codeName = codeNameOf(comp);
+    const codeName = resolveCodeName(comp, cfg);
     const code = countCodeUsage(codeName, files || []);
     const nameRe = new RegExp(`\\b${esc(comp.name)}\\b`, 'i');
     const figma = (frames || []).filter(
       (fr) => String(fr.type || '').toUpperCase() === 'INSTANCE' && nameRe.test(fr.name || '')
     ).length;
     const total = code.count + figma;
-    if (total <= o.retireMax) {
-      retirements.push({ name: comp.name, codeName, total, code: code.count, figma, sites: code.sites, sawFigma: (frames || []).length > 0 });
+    const ageMonths = monthsAgo(dates[comp.name], now);
+    const lowUse = total <= o.retireMax;
+    const stale = ageMonths != null && ageMonths >= o.staleMonths;
+    if (lowUse || stale) {
+      retirements.push({
+        name: comp.name, codeName, total, code: code.count, figma,
+        sites: code.sites, sawFigma: (frames || []).length > 0,
+        lastUsed: dates[comp.name] || null, ageMonths, lowUse, stale,
+      });
     }
   }
-  retirements.sort((a, b) => a.total - b.total);
+  // Oldest/least-used first: stale before low-use, then by age, then by count.
+  retirements.sort((a, b) => (b.ageMonths || 0) - (a.ageMonths || 0) || a.total - b.total);
 
   return { promotions, retirements };
 }

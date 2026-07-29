@@ -55,6 +55,32 @@ test('Figma instances count toward usage (prevents false retirement)', () => {
   assert.ok(!names.includes('badge'), 'badge total 2 -> not retired');
 });
 
+// --- temporal axis ----------------------------------------------------------
+const NOW = Date.parse('2026-07-01T00:00:00Z');
+const monthsBackIso = (m) => new Date(NOW - m * 30.44 * 24 * 3600 * 1000).toISOString();
+
+test('flags a stale-but-present component as a retirement candidate', () => {
+  const files = [{ path: 'app.tsx', text: '<Card/>\n<Card/>\n<Card/>' }]; // used 3× -> not low-use
+  const extra = { now: NOW, componentDates: { card: monthsBackIso(8) } };  // last used 8mo ago
+  const r = evaluate(files, [], cfg, extra).retirements.find((x) => x.name === 'card');
+  assert.ok(r, 'card should be a candidate via staleness despite 3 uses');
+  assert.equal(r.stale, true);
+  assert.equal(r.lowUse, false);
+  assert.ok(r.ageMonths >= 7);
+});
+
+test('does NOT flag a recently-used, well-used component', () => {
+  const files = [{ path: 'app.tsx', text: '<Card/>\n<Card/>\n<Card/>' }];
+  const extra = { now: NOW, componentDates: { card: monthsBackIso(1) } }; // last used 1mo ago
+  assert.ok(!evaluate(files, [], cfg, extra).retirements.some((x) => x.name === 'card'));
+});
+
+test('missing git dates degrade gracefully (no recency, still counts-based)', () => {
+  const files = [{ path: 'app.tsx', text: '<Card/>\n<Card/>' }]; // card used 2× -> not low-use
+  const r = evaluate(files, [], cfg, {}).retirements.find((x) => x.name === 'card');
+  assert.equal(r, undefined); // no dates, not low-use -> not a candidate
+});
+
 test('respects configured thresholds', () => {
   const files = [{ path: 'a.css', text: warnRule }, { path: 'b.css', text: warnRule }];
   const loose = { ...cfg, evaluate: { promoteMin: 2, retireMax: 1, minFootprint: 3 } };

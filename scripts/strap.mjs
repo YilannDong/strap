@@ -15,7 +15,8 @@ import { loadConfig, findProjectRoot } from './lib/config.mjs';
 import { importDesignSystem } from './lib/import.mjs';
 import { scanFile, maxSeverity, SEV_RANK } from './lib/scan.mjs';
 import { auditFrames } from './lib/figma.mjs';
-import { evaluate } from './lib/evaluate.mjs';
+import { evaluate, resolveCodeName } from './lib/evaluate.mjs';
+import { isGitRepo, lastUsedDate } from './lib/git.mjs';
 import { formatFile, formatSummary, formatFigmaFindings, formatEvaluation } from './lib/report.mjs';
 
 const cmd = process.argv[2];
@@ -250,10 +251,18 @@ function evaluateCmd() {
     catch { console.error(`Strap: could not parse ${relative(cfg.root, snapPath)} — skipping Figma frames.`); }
   }
 
-  const result = evaluate(files, frames, cfg);
+  // Temporal axis: date each component's last usage from git history (impure —
+  // done here, passed into the pure engine).
+  const components = (cfg.registry.components) || [];
+  const gitOn = isGitRepo(cfg.root);
+  const componentDates = {};
+  if (gitOn) for (const c of components) componentDates[c.name] = lastUsedDate(resolveCodeName(c, cfg), cfg.root);
+
+  const result = evaluate(files, frames, cfg, { componentDates, now: Date.now() });
   console.log(formatEvaluation(result));
   console.log('');
-  console.log(`Scanned ${files.length} file(s)${frames.length ? ` + ${frames.length} Figma frame(s)` : ''}.`);
+  console.log(`Scanned ${files.length} file(s)${frames.length ? ` + ${frames.length} Figma frame(s)` : ''}.` +
+    (gitOn ? '' : ' (not a git repo — recency unavailable)'));
   process.exit(0);
 }
 

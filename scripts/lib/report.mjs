@@ -46,12 +46,16 @@ export function formatEvaluation(result) {
   }
   lines.push('');
 
-  lines.push(C.bold('Retirement candidates') + C.dim(' — registry components barely used:'));
+  lines.push(C.bold('Retirement candidates') + C.dim(' — barely-used or stale components:'));
   if (!retirements.length) lines.push('  ' + C.dim('none'));
   for (const r of retirements) {
     const src = `code: ${r.code}` + (r.sawFigma ? `, figma: ${r.figma}` : '');
-    const where = r.sites.length ? C.dim(`  ${r.sites.slice(0, 3).join(', ')}`) : '';
-    lines.push(`  ${C.yellow('●')} ${C.bold(r.name)}  ${r.total} use${r.total === 1 ? '' : 's'} ${C.dim('(' + src + ')')}${where}  ${C.green('→ retire?')}`);
+    let recency;
+    if (r.ageMonths == null) recency = 'recency n/a';
+    else if (r.ageMonths < 1) recency = 'used this month';
+    else recency = `last used ~${Math.round(r.ageMonths)}mo ago`;
+    const flag = r.stale && !r.lowUse ? C.yellow(' [stale]') : '';
+    lines.push(`  ${C.yellow('●')} ${C.bold(r.name)}  ${r.total} use${r.total === 1 ? '' : 's'} ${C.dim('(' + src + ')')}  ${C.dim(recency)}${flag}  ${C.green('→ retire?')}`);
   }
   lines.push('');
   lines.push(`${promotions.length} promotion, ${retirements.length} retirement candidate(s). ${C.dim('Strap proposes — you decide.')}`);
