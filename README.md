@@ -424,6 +424,12 @@ It's **advisory and never fails a build** — Strap proposes, you decide (same m
 Thresholds live under `evaluate` in `strap.config.json` (`promoteMin` 3, `retireMax` 1,
 `minFootprint` 3, `staleMonths` 6).
 
+**Runs itself, after each sprint.** `.github/workflows/evaluate.yml` runs it automatically — on every
+PR scoped to *what that PR ships* (`--since` the base branch), plus a weekly full sweep — and posts
+the proposals to the run's **job summary**. So the noticing happens on its own; you just read and
+decide. Flags: `--since <ref>` scopes the search for *new* patterns to what changed (retirement still
+measures the whole codebase); `--md` emits Markdown for the summary / a PR comment.
+
 **How recency works:** Strap dates each component's last use with
 `git log -1 -G'<Component'` — the last commit whose diff touched a usage. Git access is the one
 impure corner ([scripts/lib/git.mjs](scripts/lib/git.mjs)); the analysis engine stays pure (dates
@@ -460,9 +466,10 @@ remove) are still deferred.
 
 **Exploring (not built yet):**
 
-- 🔭 **Lifecycle automation** — auto-trigger `evaluate` after each sprint (CI), a true rolling
-  "uses in the last N months" window, and optionally acting on an approved proposal (scaffold the
-  promoted component / remove the retired one).
+- 🔭 **Lifecycle automation — remaining** — the CI auto-trigger + PR-scoped scan ship in
+  `.github/workflows/evaluate.yml`; still open: a true rolling "uses in the last N months" window
+  (vs last-touched), posting the report as a PR *comment* (not just the job summary), and optionally
+  acting on an approved proposal (scaffold the promoted component / remove the retired one).
 - 🔭 **Tighter Figma ↔ code round-trips** — richer bidirectional sync (Code Connect publish on any
   plan, continuous drift detection between canvas and code).
 - 🔭 **Deeper Figma dedup** — the current radar is a conservative first pass; per-element AST-grade

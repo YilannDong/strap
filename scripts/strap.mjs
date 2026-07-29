@@ -16,8 +16,8 @@ import { importDesignSystem } from './lib/import.mjs';
 import { scanFile, maxSeverity, SEV_RANK } from './lib/scan.mjs';
 import { auditFrames } from './lib/figma.mjs';
 import { evaluate, resolveCodeName } from './lib/evaluate.mjs';
-import { isGitRepo, lastUsedDate } from './lib/git.mjs';
-import { formatFile, formatSummary, formatFigmaFindings, formatEvaluation } from './lib/report.mjs';
+import { isGitRepo, lastUsedDate, changedSince } from './lib/git.mjs';
+import { formatFile, formatSummary, formatFigmaFindings, formatEvaluation, formatEvaluationMarkdown } from './lib/report.mjs';
 
 const cmd = process.argv[2];
 const rest = process.argv.slice(3);
@@ -258,10 +258,25 @@ function evaluateCmd() {
   const componentDates = {};
   if (gitOn) for (const c of components) componentDates[c.name] = lastUsedDate(resolveCodeName(c, cfg), cfg.root);
 
-  const result = evaluate(files, frames, cfg, { componentDates, now: Date.now() });
+  // --since <ref>: scope the search for NEW patterns to what shipped this sprint.
+  const sinceIdx = rest.indexOf('--since');
+  let shippedPaths = null;
+  if (sinceIdx >= 0 && rest[sinceIdx + 1]) {
+    const changed = gitOn ? changedSince(rest[sinceIdx + 1], cfg.root) : null;
+    if (changed) shippedPaths = new Set(changed);
+    else console.error(`Strap: could not resolve --since ${rest[sinceIdx + 1]} — scanning the whole tree.`);
+  }
+
+  const result = evaluate(files, frames, cfg, { componentDates, now: Date.now(), shippedPaths });
+
+  if (rest.includes('--md')) {
+    console.log(formatEvaluationMarkdown(result));
+    process.exit(0);
+  }
   console.log(formatEvaluation(result));
   console.log('');
-  console.log(`Scanned ${files.length} file(s)${frames.length ? ` + ${frames.length} Figma frame(s)` : ''}.` +
+  const scope = shippedPaths ? `${shippedPaths.size} shipped file(s)` : `${files.length} file(s)`;
+  console.log(`Scanned ${scope}${frames.length ? ` + ${frames.length} Figma frame(s)` : ''}.` +
     (gitOn ? '' : ' (not a git repo — recency unavailable)'));
   process.exit(0);
 }
@@ -310,7 +325,8 @@ Usage:
   strap validate <files>   Validate specific files
   strap audit              Validate the whole project
   strap figma-audit [snap] Duplicate radar for the Figma canvas (.strap/figma-frames.json)
-  strap evaluate [--figma] Component-lifecycle radar: propose promotions + retirements
+  strap evaluate [opts]    Component-lifecycle radar: propose promotions + retirements
+                           opts: --figma <snap>  --since <ref> (scope to what shipped)  --md
   strap check              Hook mode (reads PostToolUse payload on stdin)`);
     process.exit(0);
   }
