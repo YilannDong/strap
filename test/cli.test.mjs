@@ -30,6 +30,13 @@ test('tokens codegen emits the brand variable', () => {
   assert.match(out, /--blue:\s*#2563EB/);
 });
 
+test('evaluate prints the component-lifecycle report', () => {
+  const out = run(['evaluate']);
+  assert.match(out, /Component lifecycle report/);
+  assert.match(out, /Promotion candidates/);
+  assert.match(out, /Retirement candidates/);
+});
+
 test('figma-audit reports duplicate/look-alike frames from a snapshot', () => {
   const out = run(['figma-audit', join(root, 'test', 'fixtures', 'figma-frames.json')]);
   assert.match(out, /figmaDuplicateComponent/); // raw "Panel" looks like the card

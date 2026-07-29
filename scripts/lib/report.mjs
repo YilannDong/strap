@@ -32,6 +32,36 @@ export function formatFigmaFindings(findings) {
   return lines.join('\n');
 }
 
+/** Pretty-print the component-lifecycle report from `evaluate()`. */
+export function formatEvaluation(result) {
+  const { promotions, retirements } = result;
+  const lines = [C.bold('Component lifecycle report'), ''];
+
+  lines.push(C.bold('Promotion candidates') + C.dim(' — recurring patterns not yet components:'));
+  if (!promotions.length) lines.push('  ' + C.dim('none'));
+  for (const p of promotions) {
+    const more = p.sites.length > 4 ? `, +${p.sites.length - 4} more` : '';
+    lines.push(`  ${C.yellow('●')} ${C.bold(p.count + '×')}  {${p.tokens.join(', ')}}`);
+    lines.push(`      ${C.dim(p.sites.slice(0, 4).join(', ') + more)}  ${C.green('→ promote to a component?')}`);
+  }
+  lines.push('');
+
+  lines.push(C.bold('Retirement candidates') + C.dim(' — barely-used or stale components:'));
+  if (!retirements.length) lines.push('  ' + C.dim('none'));
+  for (const r of retirements) {
+    const src = `code: ${r.code}` + (r.sawFigma ? `, figma: ${r.figma}` : '');
+    let recency;
+    if (r.ageMonths == null) recency = 'recency n/a';
+    else if (r.ageMonths < 1) recency = 'used this month';
+    else recency = `last used ~${Math.round(r.ageMonths)}mo ago`;
+    const flag = r.stale && !r.lowUse ? C.yellow(' [stale]') : '';
+    lines.push(`  ${C.yellow('●')} ${C.bold(r.name)}  ${r.total} use${r.total === 1 ? '' : 's'} ${C.dim('(' + src + ')')}  ${C.dim(recency)}${flag}  ${C.green('→ retire?')}`);
+  }
+  lines.push('');
+  lines.push(`${promotions.length} promotion, ${retirements.length} retirement candidate(s). ${C.dim('Strap proposes — you decide.')}`);
+  return lines.join('\n');
+}
+
 export function formatSummary(fileResults) {
   let errors = 0;
   let warns = 0;
