@@ -402,6 +402,33 @@ depends on what `get_design_context` exposes (ambiguous nodes are treated as raw
 over-flag); and it enriches at most ~60 frames per run to respect Figma rate limits, logging anything
 skipped. For continuous in-canvas linting, dedicated Figma plugins (Design Lint, etc.) complement it.
 
+### Component lifecycle (`strap evaluate`)
+
+The radars ask *"is this a duplicate right now?"* — `evaluate` asks *"what should the component
+**library** become?"* After a sprint, run it over what shipped (code + an optional Figma snapshot);
+it proposes two lifecycle moves and leaves the decision to you:
+
+```bash
+node scripts/strap.mjs evaluate              # code only
+node scripts/strap.mjs evaluate --figma .strap/figma-frames.json   # + Figma frames
+```
+
+- **Promotion** — a token-footprint pattern that recurs **≥ `promoteMin`** times but isn't a
+  component yet: *"8× {color.line, color.white, radius.card, shadow.md} — promote to a component?"*
+  (Patterns that already match a registry component are skipped — that's the duplicate radar's job.)
+- **Retirement** — a registry component with **≤ `retireMax`** total usages (code `<Component>` +
+  Figma instances): *"`badge` — 1 use — retire?"*
+
+It's **advisory and never fails a build** — Strap proposes, you decide (same model as every radar).
+Thresholds live under `evaluate` in `strap.config.json` (`promoteMin` 3, `retireMax` 1,
+`minFootprint` 3).
+
+**Honest limits:** **counts, not time** — "used once in *six months*" needs history; v1 reports
+current counts only. Retirement usage is best-effort (resolves a component's code name via Code
+Connect, else PascalCase). Cross-surface clustering needs consistent token-leaf naming (a CSS
+`--warn-tint` and a Figma `warnTint` won't merge). Temporal dating, auto-triggering after a sprint,
+and acting on your decision (scaffold / remove) are deferred.
+
 ## Status & roadmap
 
 - ✅ **Enforcement engine** — validate / audit / blocking hook, tested + CI on Node 18/20/22.
@@ -419,10 +446,16 @@ skipped. For continuous in-canvas linting, dedicated Figma plugins (Design Lint,
   canvas via the Figma MCP and flags raw frames that are really a library component, plus clusters of
   near-identical frames. Advisory, MCP-driven (no Figma plugin) — see
   **[Figma duplicate radar](#figma-duplicate-radar-strap-figma-audit)**.
+- ✅ **Component lifecycle (`strap evaluate`)** — advisory radar that proposes **promotions**
+  (recurring patterns → components) and **retirements** (barely-used components); counts-only v1.
+  Strap surfaces, the human decides — see **[Component lifecycle](#component-lifecycle-strap-evaluate)**.
 - The turn-key bidirectional runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
 
 **Exploring (not built yet):**
 
+- 🔭 **Lifecycle temporal axis** — date component usage from git history ("last used 6 months ago"),
+  auto-trigger `evaluate` after each sprint (CI), and optionally act on an approved proposal
+  (scaffold the promoted component / remove the retired one).
 - 🔭 **Tighter Figma ↔ code round-trips** — richer bidirectional sync (Code Connect publish on any
   plan, continuous drift detection between canvas and code).
 - 🔭 **Deeper Figma dedup** — the current radar is a conservative first pass; per-element AST-grade

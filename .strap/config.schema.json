@@ -27,6 +27,15 @@
         "colors": { "type": "array", "items": { "type": "string" } },
         "spacingPx": { "type": "array", "items": { "type": "number" } }
       }
+    },
+    "evaluate": {
+      "type": "object",
+      "description": "Thresholds for `strap evaluate` (component-lifecycle radar).",
+      "properties": {
+        "promoteMin": { "type": "number", "description": "Min occurrences of a recurring pattern before proposing it as a component (default 3)." },
+        "retireMax": { "type": "number", "description": "Max total usages for a component to be a retirement candidate (default 1)." },
+        "minFootprint": { "type": "number", "description": "Min tokens a pattern must use to be considered (default 3)." }
+      }
     }
   }
 }

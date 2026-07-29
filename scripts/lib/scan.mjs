@@ -16,7 +16,7 @@ function sev(cfg, rule) {
 }
 
 // Build a line index so byte offsets become line/col.
-function locate(text, index) {
+export function locate(text, index) {
   let line = 1;
   let last = 0;
   for (let i = 0; i < index; i++) {
@@ -48,7 +48,7 @@ const VAR_REF_RE = /var\(\s*--([a-zA-Z0-9-]+)/g;
 const SCSS_REF_RE = /\$([a-zA-Z0-9-]+)/g;
 const ALIAS_REF_RE = /\{([a-z]+)\.([a-zA-Z0-9]+)\}/g;
 const TOKENS_REF_RE = /tokens?\.([a-zA-Z]+)\.([a-zA-Z0-9]+)/g;
-function tokensInBlock(body) {
+export function tokensInBlock(body) {
   const keys = new Set();
   let r;
   VAR_REF_RE.lastIndex = 0;
@@ -110,7 +110,7 @@ function openingTag(text, tagStart) {
 // Per-element token footprints from inline style + className (incl. Tailwind).
 const CLASSNAME_RE = /className\s*=\s*(?:"([^"]*)"|'([^']*)'|\{\s*[`"']([^`"']*)[`"']\s*\})/;
 const INLINE_STYLE_RE = /style=\{\{([\s\S]*?)\}\}/;
-function jsxElementFootprints(text, allKeys) {
+export function jsxElementFootprints(text, allKeys) {
   const out = [];
   const TAG_RE = /<([A-Za-z][\w.]*)/g;
   let t;
@@ -132,12 +132,27 @@ function jsxElementFootprints(text, allKeys) {
 
 // styled-components / css`` template literals -> token footprint.
 const STYLED_RE = /(?:const|let|var)\s+([A-Za-z]\w*)\s*=\s*styled(?:\.[a-z][\w]*|\(\s*([A-Za-z]\w*)\s*\))?[^`]*`([\s\S]*?)`/g;
-function styledFootprints(text) {
+export function styledFootprints(text) {
   const out = [];
   let s;
   STYLED_RE.lastIndex = 0;
   while ((s = STYLED_RE.exec(text))) {
     out.push({ name: s[1], base: s[2] || null, index: s.index, tokens: tokensInBlock(s[3]) });
+  }
+  return out;
+}
+
+// Per-CSS-rule token footprints (selector + tokens). Comment-stripped selector so a
+// token name in a comment can't leak in. Used by the duplicate radar and `evaluate`.
+export function cssRuleFootprints(text) {
+  const out = [];
+  const BLOCK_RE = /([^{}]+)\{([^{}]*)\}/g;
+  let m;
+  while ((m = BLOCK_RE.exec(text))) {
+    const selector = m[1].replace(/\/\*[\s\S]*?\*\//g, '').split(/[};]/).pop().trim();
+    if (!selector || selector.startsWith('@')) continue;
+    const tokens = tokensInBlock(m[2]);
+    if (tokens.size) out.push({ selector, index: m.index, tokens });
   }
   return out;
 }

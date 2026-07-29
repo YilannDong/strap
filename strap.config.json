@@ -17,5 +17,10 @@
   "allow": {
     "colors": ["transparent", "currentColor", "inherit", "none"],
     "spacingPx": [0, 1]
+  },
+  "evaluate": {
+    "promoteMin": 3,
+    "retireMax": 1,
+    "minFootprint": 3
   }
 }

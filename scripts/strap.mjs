@@ -15,7 +15,8 @@ import { loadConfig, findProjectRoot } from './lib/config.mjs';
 import { importDesignSystem } from './lib/import.mjs';
 import { scanFile, maxSeverity, SEV_RANK } from './lib/scan.mjs';
 import { auditFrames } from './lib/figma.mjs';
-import { formatFile, formatSummary, formatFigmaFindings } from './lib/report.mjs';
+import { evaluate } from './lib/evaluate.mjs';
+import { formatFile, formatSummary, formatFigmaFindings, formatEvaluation } from './lib/report.mjs';
 
 const cmd = process.argv[2];
 const rest = process.argv.slice(3);
@@ -230,6 +231,32 @@ function figmaAuditCmd() {
   process.exit(errors ? 1 : 0);
 }
 
+// ---- evaluate ----------------------------------------------------------------
+// Component-lifecycle radar: proposes promotions (recurring patterns → components)
+// and retirements (barely-used components). Advisory — always exits 0.
+function evaluateCmd() {
+  const cfg = loadConfig();
+  const files = walk(cfg.root, cfg)
+    .map((f) => { try { return { path: relative(cfg.root, f), text: readFileSync(f, 'utf8') }; } catch { return null; } })
+    .filter(Boolean);
+
+  const figIdx = rest.indexOf('--figma');
+  const snapPath = figIdx >= 0
+    ? (rest[figIdx + 1] ? resolve(rest[figIdx + 1]) : null)
+    : join(cfg.artifactsDir, 'figma-frames.json');
+  let frames = [];
+  if (snapPath && existsSync(snapPath)) {
+    try { const snap = JSON.parse(readFileSync(snapPath, 'utf8')); frames = Array.isArray(snap) ? snap : (snap.frames || []); }
+    catch { console.error(`Strap: could not parse ${relative(cfg.root, snapPath)} — skipping Figma frames.`); }
+  }
+
+  const result = evaluate(files, frames, cfg);
+  console.log(formatEvaluation(result));
+  console.log('');
+  console.log(`Scanned ${files.length} file(s)${frames.length ? ` + ${frames.length} Figma frame(s)` : ''}.`);
+  process.exit(0);
+}
+
 // ---- dispatch ----------------------------------------------------------------
 try {
   if (cmd === 'check') {
@@ -249,6 +276,8 @@ try {
     syncHelp();
   } else if (cmd === 'figma-audit') {
     figmaAuditCmd();
+  } else if (cmd === 'evaluate') {
+    evaluateCmd();
   } else if (cmd === 'validate') {
     const cfg = loadConfig();
     const files = rest.map((f) => resolve(f));
@@ -272,6 +301,7 @@ Usage:
   strap validate <files>   Validate specific files
   strap audit              Validate the whole project
   strap figma-audit [snap] Duplicate radar for the Figma canvas (.strap/figma-frames.json)
+  strap evaluate [--figma] Component-lifecycle radar: propose promotions + retirements
   strap check              Hook mode (reads PostToolUse payload on stdin)`);
     process.exit(0);
   }
