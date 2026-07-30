@@ -59,26 +59,29 @@ test('Figma instances count toward usage (prevents false retirement)', () => {
 const NOW = Date.parse('2026-07-01T00:00:00Z');
 const monthsBackIso = (m) => new Date(NOW - m * 30.44 * 24 * 3600 * 1000).toISOString();
 
-test('flags a stale-but-present component as a retirement candidate', () => {
-  const files = [{ path: 'app.tsx', text: '<Card/>\n<Card/>\n<Card/>' }]; // used 3× -> not low-use
-  const extra = { now: NOW, componentDates: { card: monthsBackIso(8) } };  // last used 8mo ago
-  const r = evaluate(files, [], cfg, extra).retirements.find((x) => x.name === 'card');
-  assert.ok(r, 'card should be a candidate via staleness despite 3 uses');
-  assert.equal(r.stale, true);
-  assert.equal(r.lowUse, false);
-  assert.ok(r.ageMonths >= 7);
-});
-
-test('does NOT flag a recently-used, well-used component', () => {
-  const files = [{ path: 'app.tsx', text: '<Card/>\n<Card/>\n<Card/>' }];
-  const extra = { now: NOW, componentDates: { card: monthsBackIso(1) } }; // last used 1mo ago
+test('does NOT retire a well-used component even if untouched for months', () => {
+  // The correctness fix: low recent *activity* is not low *usage*.
+  const files = [{ path: 'app.tsx', text: '<Card/>\n<Card/>\n<Card/>' }]; // used 3× -> well-used
+  const extra = { now: NOW, componentDates: { card: monthsBackIso(8) } }; // last touched 8mo ago
   assert.ok(!evaluate(files, [], cfg, extra).retirements.some((x) => x.name === 'card'));
 });
 
-test('missing git dates degrade gracefully (no recency, still counts-based)', () => {
-  const files = [{ path: 'app.tsx', text: '<Card/>\n<Card/>' }]; // card used 2× -> not low-use
+test('annotates a low-use candidate with recency + rolling window', () => {
+  const files = [{ path: 'app.tsx', text: '<Card/>' }]; // 1 use -> low-use candidate
+  const extra = { now: NOW, componentDates: { card: monthsBackIso(4) }, componentWindowUses: { card: 1 } };
+  const r = evaluate(files, [], cfg, extra).retirements.find((x) => x.name === 'card');
+  assert.ok(r);
+  assert.ok(r.ageMonths >= 3 && r.ageMonths <= 5);
+  assert.equal(r.windowUses, 1);
+  assert.equal(r.windowMonths, 6);
+});
+
+test('missing git data degrades gracefully (recency null, still counts-based)', () => {
+  const files = [{ path: 'app.tsx', text: '<Card/>' }]; // 1 use -> still a candidate
   const r = evaluate(files, [], cfg, {}).retirements.find((x) => x.name === 'card');
-  assert.equal(r, undefined); // no dates, not low-use -> not a candidate
+  assert.ok(r);
+  assert.equal(r.ageMonths, null);
+  assert.equal(r.windowUses, null);
 });
 
 // --- --since scoping (what shipped) -----------------------------------------

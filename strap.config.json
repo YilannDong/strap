@@ -22,6 +22,6 @@
     "promoteMin": 3,
     "retireMax": 1,
     "minFootprint": 3,
-    "staleMonths": 6
+    "windowMonths": 6
   }
 }

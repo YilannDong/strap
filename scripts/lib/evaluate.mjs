@@ -7,7 +7,7 @@
 import { canonFromConsumes, matchFootprint, DUP_MIN_CONSUMES } from './fingerprint.mjs';
 import { cssRuleFootprints, jsxElementFootprints, styledFootprints, locate } from './scan.mjs';
 
-const DEFAULTS = { promoteMin: 3, retireMax: 1, minFootprint: 3, staleMonths: 6 };
+const DEFAULTS = { promoteMin: 3, retireMax: 1, minFootprint: 3, windowMonths: 6 };
 const opts = (cfg) => ({ ...DEFAULTS, ...((cfg && cfg.evaluate) || {}) });
 
 const pascal = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
@@ -102,11 +102,14 @@ export function evaluate(files, frames, cfg, extra = {}) {
   }
   promotions.sort((a, b) => b.count - a.count);
 
-  // ---- Retirement: barely-used OR stale registry components ----
-  // A candidate is low-use (<= retireMax total usages) OR stale (last used longer
-  // ago than staleMonths) — the temporal axis catches "still there but nobody's
-  // touched it in months." Recency comes from git via `extra.componentDates`.
+  // ---- Retirement: barely-used registry components ----
+  // Trigger is LOW USAGE only (<= retireMax total usages) — never a well-used
+  // component, no matter how stable/untouched it is (low recent *activity* is not
+  // low *usage*). The temporal signals below only ANNOTATE the decision:
+  //   • ageMonths   — how long since it was last touched (from `componentDates`)
+  //   • windowUses  — usage-touching commits in the last windowMonths (`componentWindowUses`)
   const dates = extra.componentDates || {};
+  const windowUsesMap = extra.componentWindowUses || {};
   const now = extra.now || null;
   const retirements = [];
   for (const comp of components) {
@@ -117,19 +120,17 @@ export function evaluate(files, frames, cfg, extra = {}) {
       (fr) => String(fr.type || '').toUpperCase() === 'INSTANCE' && nameRe.test(fr.name || '')
     ).length;
     const total = code.count + figma;
-    const ageMonths = monthsAgo(dates[comp.name], now);
-    const lowUse = total <= o.retireMax;
-    const stale = ageMonths != null && ageMonths >= o.staleMonths;
-    if (lowUse || stale) {
-      retirements.push({
-        name: comp.name, codeName, total, code: code.count, figma,
-        sites: code.sites, sawFigma: (frames || []).length > 0,
-        lastUsed: dates[comp.name] || null, ageMonths, lowUse, stale,
-      });
-    }
+    if (total > o.retireMax) continue; // well-used — never a retirement candidate
+    retirements.push({
+      name: comp.name, codeName, total, code: code.count, figma,
+      sites: code.sites, sawFigma: (frames || []).length > 0,
+      lastUsed: dates[comp.name] || null, ageMonths: monthsAgo(dates[comp.name], now),
+      windowUses: comp.name in windowUsesMap ? windowUsesMap[comp.name] : null,
+      windowMonths: o.windowMonths,
+    });
   }
-  // Oldest/least-used first: stale before low-use, then by age, then by count.
-  retirements.sort((a, b) => (b.ageMonths || 0) - (a.ageMonths || 0) || a.total - b.total);
+  // Least-used first, then oldest-touched.
+  retirements.sort((a, b) => a.total - b.total || (b.ageMonths || 0) - (a.ageMonths || 0));
 
   return { promotions, retirements };
 }

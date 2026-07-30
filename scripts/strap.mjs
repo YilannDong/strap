@@ -16,7 +16,7 @@ import { importDesignSystem } from './lib/import.mjs';
 import { scanFile, maxSeverity, SEV_RANK } from './lib/scan.mjs';
 import { auditFrames } from './lib/figma.mjs';
 import { evaluate, resolveCodeName } from './lib/evaluate.mjs';
-import { isGitRepo, lastUsedDate, changedSince } from './lib/git.mjs';
+import { isGitRepo, lastUsedDate, recentUses, changedSince } from './lib/git.mjs';
 import { formatFile, formatSummary, formatFigmaFindings, formatEvaluation, formatEvaluationMarkdown } from './lib/report.mjs';
 
 const cmd = process.argv[2];
@@ -255,8 +255,15 @@ function evaluateCmd() {
   // done here, passed into the pure engine).
   const components = (cfg.registry.components) || [];
   const gitOn = isGitRepo(cfg.root);
+  const windowMonths = (cfg.evaluate && cfg.evaluate.windowMonths) || 6;
+  const sinceIso = new Date(Date.now() - windowMonths * 30.44 * 24 * 3600 * 1000).toISOString();
   const componentDates = {};
-  if (gitOn) for (const c of components) componentDates[c.name] = lastUsedDate(resolveCodeName(c, cfg), cfg.root);
+  const componentWindowUses = {};
+  if (gitOn) for (const c of components) {
+    const codeName = resolveCodeName(c, cfg);
+    componentDates[c.name] = lastUsedDate(codeName, cfg.root);
+    componentWindowUses[c.name] = recentUses(codeName, sinceIso, cfg.root);
+  }
 
   // --since <ref>: scope the search for NEW patterns to what shipped this sprint.
   const sinceIdx = rest.indexOf('--since');
@@ -267,7 +274,7 @@ function evaluateCmd() {
     else console.error(`Strap: could not resolve --since ${rest[sinceIdx + 1]} — scanning the whole tree.`);
   }
 
-  const result = evaluate(files, frames, cfg, { componentDates, now: Date.now(), shippedPaths });
+  const result = evaluate(files, frames, cfg, { componentDates, componentWindowUses, now: Date.now(), shippedPaths });
 
   if (rest.includes('--md')) {
     console.log(formatEvaluationMarkdown(result));

@@ -417,12 +417,13 @@ node scripts/strap.mjs evaluate --figma .strap/figma-frames.json   # + Figma fra
   component yet: *"8× {color.line, color.white, radius.card, shadow.md} — promote to a component?"*
   (Patterns that already match a registry component are skipped — that's the duplicate radar's job.)
 - **Retirement** — a registry component that is **barely used** (≤ `retireMax` total usages: code
-  `<Component>` + Figma instances) **or stale** (last used more than `staleMonths` ago, dated from
-  git history): *"`badge` — 1 use — last used ~8mo ago — retire?"*
+  `<Component>` + Figma instances), annotated with git-dated recency and a rolling "uses in the last
+  N months" count to inform the call: *"`badge` — 1 use — used this month, 2 in last 6mo — retire?"*
+  (Low recent *activity* alone never triggers it — a stable, well-used component is not a candidate.)
 
 It's **advisory and never fails a build** — Strap proposes, you decide (same model as every radar).
 Thresholds live under `evaluate` in `strap.config.json` (`promoteMin` 3, `retireMax` 1,
-`minFootprint` 3, `staleMonths` 6).
+`minFootprint` 3, `windowMonths` 6).
 
 **Runs itself, after each sprint.** `.github/workflows/evaluate.yml` runs it automatically — on every
 PR scoped to *what that PR ships* (`--since` the base branch), plus a weekly full sweep — and posts
@@ -430,15 +431,21 @@ the proposals to the run's **job summary**. So the noticing happens on its own; 
 decide. Flags: `--since <ref>` scopes the search for *new* patterns to what changed (retirement still
 measures the whole codebase); `--md` emits Markdown for the summary / a PR comment.
 
-**How recency works:** Strap dates each component's last use with
-`git log -1 -G'<Component'` — the last commit whose diff touched a usage. Git access is the one
-impure corner ([scripts/lib/git.mjs](scripts/lib/git.mjs)); the analysis engine stays pure (dates
-are passed in). Outside a git repo, recency is skipped and it falls back to counts.
+**How the temporal signals work:** Strap dates last use with `git log -1 -G'<Component'` (last commit
+whose diff touched a usage) and counts recent activity with `git log --since -G'<Component'` (the
+rolling `windowMonths` window). Git is the one impure corner
+([scripts/lib/git.mjs](scripts/lib/git.mjs)); the analysis engine stays pure — the dates and counts
+are passed in. Outside a git repo, both are skipped and it falls back to counts.
 
-**Honest limits:** recency is *last-touched*, not a true rolling "uses in the last 6 months" window;
+**Design note — usage, not activity:** retirement triggers on **low usage only**, never on low recent
+activity. A `Button` used in 50 places but untouched for a year is *stable*, not dead — flagging it
+would be a false positive. Recency and the rolling window are **annotations** that help you judge the
+already-low-usage candidates, not extra triggers.
+
+**Honest limits:** the window counts *usage-touching commits*, a proxy for "times used recently";
 retirement usage is best-effort (resolves a component's code name via Code Connect, else PascalCase);
 cross-surface clustering needs consistent token-leaf naming (a CSS `--warn-tint` and a Figma
-`warnTint` won't merge). Auto-triggering after a sprint and acting on your decision (scaffold /
+`warnTint` won't merge). Posting the report as a PR *comment* and acting on your decision (scaffold /
 remove) are still deferred.
 
 ## Status & roadmap
@@ -466,10 +473,10 @@ remove) are still deferred.
 
 **Exploring (not built yet):**
 
-- 🔭 **Lifecycle automation — remaining** — the CI auto-trigger + PR-scoped scan ship in
-  `.github/workflows/evaluate.yml`; still open: a true rolling "uses in the last N months" window
-  (vs last-touched), posting the report as a PR *comment* (not just the job summary), and optionally
-  acting on an approved proposal (scaffold the promoted component / remove the retired one).
+- 🔭 **Lifecycle — remaining** — the CI auto-trigger, PR-scoped scan, and rolling "uses in last N
+  months" window all ship now; still open: posting the report as a PR *comment* (not just the job
+  summary), and optionally acting on an approved proposal (scaffold the promoted component / remove
+  the retired one) — the one step that crosses from "propose" into "act."
 - 🔭 **Tighter Figma ↔ code round-trips** — richer bidirectional sync (Code Connect publish on any
   plan, continuous drift detection between canvas and code).
 - 🔭 **Deeper Figma dedup** — the current radar is a conservative first pass; per-element AST-grade
