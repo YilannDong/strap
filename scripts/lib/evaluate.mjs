@@ -57,8 +57,9 @@ function countCodeUsage(name, files) {
  * @param {Array<{path:string,text:string}>} files  the shipped code corpus
  * @param {Array} frames  optional Figma frame snapshot (see .strap/figma-frames.json)
  * @param {object} cfg     loaded Strap config (uses cfg.registry, cfg.codeConnect, cfg.evaluate)
- * @param {{componentDates?:Object, now?:number}} extra  optional git recency: registry-name → ISO
- *        last-used date, plus a `now` timestamp. Passed in (not read) so evaluate stays pure.
+ * @param {{componentDates?:Object, now?:number, shippedPaths?:Set}} extra  optional: git recency
+ *        (registry-name → ISO last-used date) + `now`; and `shippedPaths` to scope promotion to
+ *        the files that changed this sprint. All passed in (not read) so evaluate stays pure.
  * @returns {{promotions:Array, retirements:Array}}
  */
 export function evaluate(files, frames, cfg, extra = {}) {
@@ -72,8 +73,14 @@ export function evaluate(files, frames, cfg, extra = {}) {
   const matchesComponent = (used) => footprints.some((f) => matchFootprint(used, f.keys).isMatch);
 
   // ---- Promotion: recurring footprints that aren't already a component ----
+  // `shippedPaths` (from `--since`) scopes the search for NEW patterns to what
+  // shipped this sprint; retirement still measures against the whole codebase.
+  const shipped = extra.shippedPaths || null;
   const codeUnits = [];
-  for (const f of files || []) codeUnits.push(...codeUnitsFromFile(f.path, f.text, allKeys));
+  for (const f of files || []) {
+    if (shipped && !shipped.has(f.path)) continue;
+    codeUnits.push(...codeUnitsFromFile(f.path, f.text, allKeys));
+  }
   const frameUnits = (frames || [])
     .filter((fr) => String(fr.type || 'FRAME').toUpperCase() === 'FRAME') // instances aren't "new patterns"
     .map((fr) => ({

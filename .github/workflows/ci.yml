@@ -19,10 +19,10 @@ jobs:
           node-version: ${{ matrix.node }}
       # The engine + tests are zero-dependency, so no install step is needed.
       - name: Unit + CLI tests
-        # Pass explicit files — `node --test <dir>` isn't supported on Node 18.
+        # `npm test` names each file explicitly (node --test <dir> isn't supported on Node 18).
         run: |
           node --version
-          node --test test/scan.test.mjs test/cli.test.mjs
+          npm test
       - name: Audit the sample library against the DS
         run: node scripts/strap.mjs audit
       - name: Verify token codegen is committed & up to date

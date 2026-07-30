@@ -81,6 +81,20 @@ test('missing git dates degrade gracefully (no recency, still counts-based)', ()
   assert.equal(r, undefined); // no dates, not low-use -> not a candidate
 });
 
+// --- --since scoping (what shipped) -----------------------------------------
+test('shippedPaths scopes promotion to changed files (retirement stays whole-repo)', () => {
+  const files = [
+    { path: 'shipped.css', text: warnRule },
+    { path: 'old-a.css', text: warnRule },
+    { path: 'old-b.css', text: warnRule },
+  ];
+  // Only shipped.css counts toward promotion -> 1 occurrence < promoteMin -> no promotion
+  const scoped = evaluate(files, [], cfg, { shippedPaths: new Set(['shipped.css']) });
+  assert.equal(scoped.promotions.length, 0);
+  // Without scoping, the same 3 files DO cluster into a promotion
+  assert.equal(evaluate(files, [], cfg, {}).promotions.length, 1);
+});
+
 test('respects configured thresholds', () => {
   const files = [{ path: 'a.css', text: warnRule }, { path: 'b.css', text: warnRule }];
   const loose = { ...cfg, evaluate: { promoteMin: 2, retireMax: 1, minFootprint: 3 } };

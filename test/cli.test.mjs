@@ -37,6 +37,12 @@ test('evaluate prints the component-lifecycle report', () => {
   assert.match(out, /Retirement candidates/);
 });
 
+test('evaluate --md emits markdown (for CI summaries)', () => {
+  const out = run(['evaluate', '--md']);
+  assert.match(out, /^## Component lifecycle report/m);
+  assert.match(out, /### Retirement candidates/);
+});
+
 test('figma-audit reports duplicate/look-alike frames from a snapshot', () => {
   const out = run(['figma-audit', join(root, 'test', 'fixtures', 'figma-frames.json')]);
   assert.match(out, /figmaDuplicateComponent/); // raw "Panel" looks like the card

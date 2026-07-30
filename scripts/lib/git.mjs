@@ -12,6 +12,17 @@ export function isGitRepo(root) {
   }
 }
 
+// Paths (repo-relative) changed since `ref` — i.e. "what shipped this sprint."
+// null if the ref can't be resolved / not a repo.
+export function changedSince(ref, root) {
+  try {
+    const out = execFileSync('git', ['diff', '--name-only', `${ref}...HEAD`], { cwd: root, encoding: 'utf8' });
+    return out.split('\n').map((s) => s.trim()).filter(Boolean);
+  } catch {
+    return null;
+  }
+}
+
 // ISO date of the most recent commit whose diff touches a usage of `<Name` — a
 // proxy for "when was this component last used." null if never / not a repo.
 export function lastUsedDate(name, root) {

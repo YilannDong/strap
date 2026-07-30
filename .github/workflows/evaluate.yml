@@ -1,0 +1,33 @@
+name: evaluate
+
+# Component-lifecycle radar. Runs automatically so the system does the noticing:
+#  • on every PR — scoped to what the PR ships (`--since` the base branch)
+#  • weekly — a full sweep of the library
+#  • on demand — workflow_dispatch
+# It only PROPOSES (promotions + retirements) into the job summary; a human decides.
+on:
+  pull_request:
+  schedule:
+    - cron: '0 9 * * 1' # Mondays 09:00 UTC
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so --since and recency dating work
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Zero-dependency engine — no install step.
+      - name: Component-lifecycle report → job summary
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            SINCE="origin/${{ github.base_ref }}"
+            git fetch origin "${{ github.base_ref }}" --depth=0 || true
+            node scripts/strap.mjs evaluate --since "$SINCE" --md >> "$GITHUB_STEP_SUMMARY"
+          else
+            node scripts/strap.mjs evaluate --md >> "$GITHUB_STEP_SUMMARY"
+          fi

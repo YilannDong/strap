@@ -62,6 +62,34 @@ export function formatEvaluation(result) {
   return lines.join('\n');
 }
 
+/** Markdown version of the lifecycle report — for CI job summaries / PR comments. */
+export function formatEvaluationMarkdown(result) {
+  const { promotions, retirements } = result;
+  const recency = (r) =>
+    r.ageMonths == null ? 'recency n/a' : r.ageMonths < 1 ? 'used this month' : `last used ~${Math.round(r.ageMonths)}mo ago`;
+  const out = ['## Component lifecycle report', ''];
+
+  out.push('### Promotion candidates', '_Recurring patterns not yet components:_', '');
+  if (!promotions.length) out.push('_none_', '');
+  for (const p of promotions) {
+    const more = p.sites.length > 5 ? ` _(+${p.sites.length - 5} more)_` : '';
+    out.push(`- **${p.count}×** \`{${p.tokens.join(', ')}}\` — promote to a component?`);
+    out.push(`  <br>${p.sites.slice(0, 5).map((s) => `\`${s}\``).join(', ')}${more}`);
+  }
+  out.push('');
+
+  out.push('### Retirement candidates', '_Barely-used or stale components:_', '');
+  if (!retirements.length) out.push('_none_', '');
+  for (const r of retirements) {
+    const src = `code: ${r.code}` + (r.sawFigma ? `, figma: ${r.figma}` : '');
+    const flag = r.stale && !r.lowUse ? ' **[stale]**' : '';
+    out.push(`- **${r.name}** — ${r.total} use${r.total === 1 ? '' : 's'} (${src}) — ${recency(r)}${flag} — retire?`);
+  }
+  out.push('');
+  out.push(`**${promotions.length} promotion, ${retirements.length} retirement candidate(s).** _Strap proposes — you decide._`);
+  return out.join('\n');
+}
+
 export function formatSummary(fileResults) {
   let errors = 0;
   let warns = 0;
