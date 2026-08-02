@@ -35,7 +35,7 @@
         "promoteMin": { "type": "number", "description": "Min occurrences of a recurring pattern before proposing it as a component (default 3)." },
         "retireMax": { "type": "number", "description": "Max total usages for a component to be a retirement candidate (default 1)." },
         "minFootprint": { "type": "number", "description": "Min tokens a pattern must use to be considered (default 3)." },
-        "staleMonths": { "type": "number", "description": "Flag a component as a retirement candidate if last used more than this many months ago, per git history (default 6)." }
+        "windowMonths": { "type": "number", "description": "Rolling window (months) for the 'uses in the last N months' annotation on retirement candidates, from git history (default 6)." }
       }
     }
   }

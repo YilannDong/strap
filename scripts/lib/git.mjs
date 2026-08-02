@@ -38,3 +38,19 @@ export function lastUsedDate(name, root) {
     return null;
   }
 }
+
+// How many commits since `sinceIso` touched a usage of `<Name` — the rolling
+// "activity in the last N months" window. null if not a repo.
+export function recentUses(name, sinceIso, root) {
+  const esc = String(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  try {
+    const out = execFileSync(
+      'git',
+      ['log', '--since', sinceIso, `-G<${esc}`, '--format=%H', '--', '.', ':(exclude)node_modules'],
+      { cwd: root, encoding: 'utf8' }
+    );
+    return out.split('\n').filter(Boolean).length;
+  } catch {
+    return null;
+  }
+}

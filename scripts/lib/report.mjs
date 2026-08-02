@@ -46,7 +46,7 @@ export function formatEvaluation(result) {
   }
   lines.push('');
 
-  lines.push(C.bold('Retirement candidates') + C.dim(' — barely-used or stale components:'));
+  lines.push(C.bold('Retirement candidates') + C.dim(' — barely-used components:'));
   if (!retirements.length) lines.push('  ' + C.dim('none'));
   for (const r of retirements) {
     const src = `code: ${r.code}` + (r.sawFigma ? `, figma: ${r.figma}` : '');
@@ -54,8 +54,8 @@ export function formatEvaluation(result) {
     if (r.ageMonths == null) recency = 'recency n/a';
     else if (r.ageMonths < 1) recency = 'used this month';
     else recency = `last used ~${Math.round(r.ageMonths)}mo ago`;
-    const flag = r.stale && !r.lowUse ? C.yellow(' [stale]') : '';
-    lines.push(`  ${C.yellow('●')} ${C.bold(r.name)}  ${r.total} use${r.total === 1 ? '' : 's'} ${C.dim('(' + src + ')')}  ${C.dim(recency)}${flag}  ${C.green('→ retire?')}`);
+    const win = r.windowUses == null ? '' : C.dim(`, ${r.windowUses} in last ${r.windowMonths}mo`);
+    lines.push(`  ${C.yellow('●')} ${C.bold(r.name)}  ${r.total} use${r.total === 1 ? '' : 's'} ${C.dim('(' + src + ')')}  ${C.dim(recency)}${win}  ${C.green('→ retire?')}`);
   }
   lines.push('');
   lines.push(`${promotions.length} promotion, ${retirements.length} retirement candidate(s). ${C.dim('Strap proposes — you decide.')}`);
@@ -78,12 +78,12 @@ export function formatEvaluationMarkdown(result) {
   }
   out.push('');
 
-  out.push('### Retirement candidates', '_Barely-used or stale components:_', '');
+  out.push('### Retirement candidates', '_Barely-used components:_', '');
   if (!retirements.length) out.push('_none_', '');
   for (const r of retirements) {
     const src = `code: ${r.code}` + (r.sawFigma ? `, figma: ${r.figma}` : '');
-    const flag = r.stale && !r.lowUse ? ' **[stale]**' : '';
-    out.push(`- **${r.name}** — ${r.total} use${r.total === 1 ? '' : 's'} (${src}) — ${recency(r)}${flag} — retire?`);
+    const win = r.windowUses == null ? '' : `, ${r.windowUses} in last ${r.windowMonths}mo`;
+    out.push(`- **${r.name}** — ${r.total} use${r.total === 1 ? '' : 's'} (${src}) — ${recency(r)}${win} — retire?`);
   }
   out.push('');
   out.push(`**${promotions.length} promotion, ${retirements.length} retirement candidate(s).** _Strap proposes — you decide._`);

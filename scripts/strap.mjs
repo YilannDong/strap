@@ -16,7 +16,8 @@ import { importDesignSystem } from './lib/import.mjs';
 import { scanFile, maxSeverity, SEV_RANK } from './lib/scan.mjs';
 import { auditFrames } from './lib/figma.mjs';
 import { evaluate, resolveCodeName } from './lib/evaluate.mjs';
-import { isGitRepo, lastUsedDate, changedSince } from './lib/git.mjs';
+import { scaffoldComponent } from './lib/scaffold.mjs';
+import { isGitRepo, lastUsedDate, recentUses, changedSince } from './lib/git.mjs';
 import { formatFile, formatSummary, formatFigmaFindings, formatEvaluation, formatEvaluationMarkdown } from './lib/report.mjs';
 
 const cmd = process.argv[2];
@@ -255,8 +256,15 @@ function evaluateCmd() {
   // done here, passed into the pure engine).
   const components = (cfg.registry.components) || [];
   const gitOn = isGitRepo(cfg.root);
+  const windowMonths = (cfg.evaluate && cfg.evaluate.windowMonths) || 6;
+  const sinceIso = new Date(Date.now() - windowMonths * 30.44 * 24 * 3600 * 1000).toISOString();
   const componentDates = {};
-  if (gitOn) for (const c of components) componentDates[c.name] = lastUsedDate(resolveCodeName(c, cfg), cfg.root);
+  const componentWindowUses = {};
+  if (gitOn) for (const c of components) {
+    const codeName = resolveCodeName(c, cfg);
+    componentDates[c.name] = lastUsedDate(codeName, cfg.root);
+    componentWindowUses[c.name] = recentUses(codeName, sinceIso, cfg.root);
+  }
 
   // --since <ref>: scope the search for NEW patterns to what shipped this sprint.
   const sinceIdx = rest.indexOf('--since');
@@ -267,7 +275,7 @@ function evaluateCmd() {
     else console.error(`Strap: could not resolve --since ${rest[sinceIdx + 1]} — scanning the whole tree.`);
   }
 
-  const result = evaluate(files, frames, cfg, { componentDates, now: Date.now(), shippedPaths });
+  const result = evaluate(files, frames, cfg, { componentDates, componentWindowUses, now: Date.now(), shippedPaths });
 
   if (rest.includes('--md')) {
     console.log(formatEvaluationMarkdown(result));
@@ -278,6 +286,47 @@ function evaluateCmd() {
   const scope = shippedPaths ? `${shippedPaths.size} shipped file(s)` : `${files.length} file(s)`;
   console.log(`Scanned ${scope}${frames.length ? ` + ${frames.length} Figma frame(s)` : ''}.` +
     (gitOn ? '' : ' (not a git repo — recency unavailable)'));
+  process.exit(0);
+}
+
+// ---- scaffold ----------------------------------------------------------------
+// Turn an approved promotion proposal into a token-bound STARTER component.
+// Creates new files only — never edits call-sites or deletes anything.
+function scaffoldCmd() {
+  const cfg = loadConfig();
+  const flag = (n) => { const i = rest.indexOf(n); return i >= 0 ? rest[i + 1] : null; };
+  const name = rest.find((a) => !a.startsWith('--'));
+  const tokensArg = flag('--tokens');
+  if (!name || !tokensArg) {
+    console.error('Usage: strap scaffold <Name> --tokens color.line,color.white,radius.card [--out <dir>] [--register]');
+    process.exit(1);
+  }
+  const tokens = tokensArg.split(',').map((s) => s.trim()).filter(Boolean);
+  const outDir = resolve(cfg.root, flag('--out') || 'src/components');
+
+  const built = scaffoldComponent(name, tokens);
+  mkdirSync(outDir, { recursive: true });
+  const written = [];
+  for (const f of built.files) {
+    const p = join(outDir, `${built.name}.${f.ext}`);
+    if (existsSync(p)) { console.error(`Strap: ${relative(cfg.root, p)} already exists — refusing to overwrite.`); process.exit(1); }
+    writeFileSync(p, f.content);
+    written.push(relative(cfg.root, p));
+  }
+
+  if (rest.includes('--register')) {
+    const regPath = join(cfg.artifactsDir, 'registry.json');
+    const reg = existsSync(regPath) ? JSON.parse(readFileSync(regPath, 'utf8')) : { components: [] };
+    reg.components = reg.components || [];
+    const src = `${relative(cfg.root, outDir)}/${built.name}.tsx`;
+    reg.components.push({ name: built.name, element: 'div', source: src, import: `import { ${built.name} } from '${src.replace(/^src\//, '@/').replace(/\.tsx$/, '')}'`, consumes: built.consumes });
+    writeFileSync(regPath, JSON.stringify(reg, null, 2) + '\n');
+    written.push(relative(cfg.root, regPath) + ' (registered)');
+  }
+
+  console.log(`Scaffolded "${built.name}" — a token-bound starting point:`);
+  for (const w of written) console.log('  + ' + w);
+  console.log('\nNext: refine the markup/props, then `node scripts/strap.mjs validate ' + written[0] + '` to confirm it stays on-spec.');
   process.exit(0);
 }
 
@@ -302,6 +351,8 @@ try {
     figmaAuditCmd();
   } else if (cmd === 'evaluate') {
     evaluateCmd();
+  } else if (cmd === 'scaffold') {
+    scaffoldCmd();
   } else if (cmd === 'validate') {
     const cfg = loadConfig();
     const files = rest.map((f) => resolve(f));
@@ -327,6 +378,8 @@ Usage:
   strap figma-audit [snap] Duplicate radar for the Figma canvas (.strap/figma-frames.json)
   strap evaluate [opts]    Component-lifecycle radar: propose promotions + retirements
                            opts: --figma <snap>  --since <ref> (scope to what shipped)  --md
+  strap scaffold <Name> --tokens <list>  Generate a token-bound starter component from a proposal
+                           opts: --out <dir> (default src/components)  --register
   strap check              Hook mode (reads PostToolUse payload on stdin)`);
     process.exit(0);
   }
