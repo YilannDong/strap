@@ -16,8 +16,22 @@ not suggestions — an automated QA hook (`scripts/strap.mjs check`, wired in
    first; don't pixel-copy. New tokens/components are explicit decisions, not defaults.
 
 ## When the hook blocks you
-It returns the offending line and the token/component to use. Fix the value or add a real token to
-`.strap/tokens.json` (then sync to Figma) — do not weaken the rule to get past it.
+The hook is **deterministic** — it always catches the off-spec write and returns the offending line
+plus the token/component to use. How you *resolve* it depends on whether there's a real decision:
+
+- **A matching token/component already exists** (e.g. `#ffffff` → `white`, or the value maps to a
+  known token) → just bind to it and re-apply. Don't ask — there's one right answer.
+- **No matching token, OR the element looks like a new component** (a raw value with no token; or a
+  hand-written element the duplicate radar flags) → this is a genuine design decision. **STOP and
+  ask the user with AskUserQuestion before writing anything**, e.g.:
+  - **A** — fold into the nearest existing token / reuse the existing component
+  - **B** — add a new token to `.strap/tokens.json` / create a new component
+  - **C** — (if it's a recurring pattern worth its own component) scaffold it: `strap scaffold <Name> --tokens …`
+
+  Wait for the user's pick, then apply it. **Never silently invent a new token, or auto-decide
+  "fold in vs. create new" on the user's behalf** — that call is theirs.
+
+Never weaken the rule to get past a block.
 
 ## Commands
 ```bash
