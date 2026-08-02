@@ -28,6 +28,8 @@ plus the token/component to use. How you *resolve* it depends on whether there's
   - **B** — add a new token to `.strap/tokens.json` / create a new component
   - **C** — (if it's a recurring pattern worth its own component) scaffold it: `strap scaffold <Name> --tokens …`
 
+  When the decision stems from a **Figma design**, first **show the user the actual frame**
+  (`get_screenshot` via the Figma MCP) so they decide with the visual in front of them, not blind.
   Wait for the user's pick, then apply it. **Never silently invent a new token, or auto-decide
   "fold in vs. create new" on the user's behalf** — that call is theirs.
 
