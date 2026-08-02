@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadConfig } from '../scripts/lib/config.mjs';
-import { evaluate } from '../scripts/lib/evaluate.mjs';
+import { evaluate, digestFilter } from '../scripts/lib/evaluate.mjs';
 
 const cfg = loadConfig(process.cwd()); // starter registry: button, input, card, badge
 
@@ -96,6 +96,42 @@ test('shippedPaths scopes promotion to changed files (retirement stays whole-rep
   assert.equal(scoped.promotions.length, 0);
   // Without scoping, the same 3 files DO cluster into a promotion
   assert.equal(evaluate(files, [], cfg, {}).promotions.length, 1);
+});
+
+// --- digest (anti-overload: only what's new, remembers what it showed) --------
+const mkResult = () => ({
+  promotions: [{ key: 'promote:a|b|c', count: 3, tokens: ['a', 'b', 'c'], sites: ['x'] }],
+  retirements: [
+    { key: 'retire:card', name: 'card', total: 1, code: 1, sites: [], sawFigma: false },
+    { key: 'retire:badge', name: 'badge', total: 0, code: 0, sites: [], sawFigma: false },
+  ],
+});
+
+test('digest shows everything when nothing has been seen', () => {
+  const d = digestFilter(mkResult(), new Set(), 10);
+  assert.equal(d.shownCount, 3);
+  assert.equal(d.promotions.length, 1);
+  assert.equal(d.retirements.length, 2);
+});
+
+test('digest hides already-seen proposals (never re-nags)', () => {
+  const d = digestFilter(mkResult(), new Set(['retire:card', 'retire:badge']), 10);
+  assert.equal(d.shownCount, 1); // only the promotion is new
+  assert.equal(d.retirements.length, 0);
+});
+
+test('digest caps at top and defers the rest (unseen, so they surface next time)', () => {
+  const d = digestFilter(mkResult(), new Set(), 1);
+  assert.equal(d.shownCount, 1);
+  assert.equal(d.freshCount, 3);
+  assert.equal(d.nextSeen.length, 1); // only the shown one is remembered
+});
+
+test('nextSeen keeps still-live suppressions but drops keys that are gone', () => {
+  const d = digestFilter(mkResult(), new Set(['retire:card', 'retire:GONE']), 10);
+  assert.ok(d.nextSeen.includes('retire:card'), 'still a candidate -> keep suppressing');
+  assert.ok(!d.nextSeen.includes('retire:GONE'), 'no longer a candidate -> forget, can re-surface');
+  assert.ok(d.nextSeen.includes('retire:badge'), 'newly shown -> now suppressed');
 });
 
 test('respects configured thresholds', () => {

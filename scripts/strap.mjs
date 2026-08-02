@@ -15,7 +15,7 @@ import { loadConfig, findProjectRoot } from './lib/config.mjs';
 import { importDesignSystem } from './lib/import.mjs';
 import { scanFile, maxSeverity, SEV_RANK } from './lib/scan.mjs';
 import { auditFrames } from './lib/figma.mjs';
-import { evaluate, resolveCodeName } from './lib/evaluate.mjs';
+import { evaluate, resolveCodeName, digestFilter } from './lib/evaluate.mjs';
 import { scaffoldComponent } from './lib/scaffold.mjs';
 import { isGitRepo, lastUsedDate, recentUses, changedSince } from './lib/git.mjs';
 import { formatFile, formatSummary, formatFigmaFindings, formatEvaluation, formatEvaluationMarkdown } from './lib/report.mjs';
@@ -276,8 +276,37 @@ function evaluateCmd() {
   }
 
   const result = evaluate(files, frames, cfg, { componentDates, componentWindowUses, now: Date.now(), shippedPaths });
+  const md = rest.includes('--md');
 
-  if (rest.includes('--md')) {
+  // --digest: only what's NEW since last time (anti-overload). A `.strap/evaluate-seen.json`
+  // remembers surfaced proposals so it never re-nags. --dry previews without updating it.
+  if (rest.includes('--digest')) {
+    const topIdx = rest.indexOf('--top');
+    const top = topIdx >= 0 && rest[topIdx + 1] ? Math.max(0, parseInt(rest[topIdx + 1], 10) || 0) : 10;
+    const seenPath = join(cfg.artifactsDir, 'evaluate-seen.json');
+    const prior = existsSync(seenPath) ? (() => { try { return JSON.parse(readFileSync(seenPath, 'utf8')); } catch { return {}; } })() : {};
+    const seenDates = prior.seen || {};
+    const d = digestFilter(result, new Set(Object.keys(seenDates)), top);
+
+    if (d.shownCount === 0) {
+      console.log(md ? '## Component lifecycle digest\n\n_No new proposals since the last digest._' : 'Component lifecycle digest — no new proposals since the last digest.');
+    } else {
+      const deferred = d.freshCount > d.shownCount ? ` (+${d.freshCount - d.shownCount} more deferred to next digest)` : '';
+      const header = `${d.shownCount} new proposal${d.shownCount === 1 ? '' : 's'} since your last digest${deferred}`;
+      const body = md ? formatEvaluationMarkdown({ promotions: d.promotions, retirements: d.retirements }) : formatEvaluation({ promotions: d.promotions, retirements: d.retirements });
+      console.log(md ? `## Component lifecycle digest\n\n_${header}._\n\n${body.replace(/^## Component lifecycle report\n\n/, '')}` : `${header}\n\n${body}`);
+    }
+
+    if (!rest.includes('--dry')) {
+      const today = new Date().toISOString().slice(0, 10);
+      const nextSeen = {};
+      for (const k of d.nextSeen) nextSeen[k] = seenDates[k] || today; // preserve first-seen date
+      writeFileSync(seenPath, JSON.stringify({ _note: 'Proposals strap evaluate --digest has already surfaced, so it never repeats itself. Delete to reset.', seen: nextSeen }, null, 2) + '\n');
+    }
+    process.exit(0);
+  }
+
+  if (md) {
     console.log(formatEvaluationMarkdown(result));
     process.exit(0);
   }
@@ -377,7 +406,8 @@ Usage:
   strap audit              Validate the whole project
   strap figma-audit [snap] Duplicate radar for the Figma canvas (.strap/figma-frames.json)
   strap evaluate [opts]    Component-lifecycle radar: propose promotions + retirements
-                           opts: --figma <snap>  --since <ref> (scope to what shipped)  --md
+                           opts: --figma <snap>  --since <ref>  --md
+                           --digest [--top N] [--dry]  (only what's new since last time)
   strap scaffold <Name> --tokens <list>  Generate a token-bound starter component from a proposal
                            opts: --out <dir> (default src/components)  --register
   strap check              Hook mode (reads PostToolUse payload on stdin)`);

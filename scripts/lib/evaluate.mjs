@@ -97,8 +97,9 @@ export function evaluate(files, frames, cfg, extra = {}) {
     groups.get(key).sites.push(u.label);
   }
   const promotions = [];
-  for (const g of groups.values()) {
-    if (g.sites.length >= o.promoteMin) promotions.push({ tokens: g.tokens, count: g.sites.length, sites: g.sites });
+  for (const [key, g] of groups) {
+    // `key` (the sorted footprint) is stable across runs — the digest uses it to remember.
+    if (g.sites.length >= o.promoteMin) promotions.push({ key: `promote:${key}`, tokens: g.tokens, count: g.sites.length, sites: g.sites });
   }
   promotions.sort((a, b) => b.count - a.count);
 
@@ -122,6 +123,7 @@ export function evaluate(files, frames, cfg, extra = {}) {
     const total = code.count + figma;
     if (total > o.retireMax) continue; // well-used — never a retirement candidate
     retirements.push({
+      key: `retire:${comp.name}`, // stable across runs — the digest remembers by this
       name: comp.name, codeName, total, code: code.count, figma,
       sites: code.sites, sawFigma: (frames || []).length > 0,
       lastUsed: dates[comp.name] || null, ageMonths: monthsAgo(dates[comp.name], now),
@@ -133,4 +135,38 @@ export function evaluate(files, frames, cfg, extra = {}) {
   retirements.sort((a, b) => a.total - b.total || (b.ageMonths || 0) - (a.ageMonths || 0));
 
   return { promotions, retirements };
+}
+
+/**
+ * Digest filter — the anti-overload core. Given an evaluate result and the set of
+ * proposal keys already surfaced, return only what's NEW (capped at `top`), plus the
+ * next seen-set to persist. Pure: the command does the file I/O.
+ *
+ *  • Only unseen proposals are shown (never re-nags about the same thing).
+ *  • Capped at `top` — the rest stay unseen, so they surface next time (deferred, not dropped).
+ *  • nextSeen keeps still-live seen keys + the ones shown now, and DROPS keys no longer
+ *    a candidate — so if a component goes dormant again later, it can legitimately re-surface.
+ *
+ * @param {{promotions:Array,retirements:Array}} result
+ * @param {Set<string>} seenKeys  keys already surfaced
+ * @param {number} top            max new items to show
+ */
+export function digestFilter(result, seenKeys, top = 10) {
+  const seen = seenKeys instanceof Set ? seenKeys : new Set(seenKeys || []);
+  const all = [...(result.promotions || []), ...(result.retirements || [])];
+  const currentKeys = new Set(all.map((x) => x.key));
+  const fresh = all.filter((x) => !seen.has(x.key));
+  const shownKeys = new Set(fresh.slice(0, Math.max(0, top)).map((x) => x.key));
+
+  const nextSeen = new Set();
+  for (const k of seen) if (currentKeys.has(k)) nextSeen.add(k); // keep still-live suppressions
+  for (const k of shownKeys) nextSeen.add(k); // suppress what we're showing now
+
+  return {
+    promotions: (result.promotions || []).filter((p) => shownKeys.has(p.key)),
+    retirements: (result.retirements || []).filter((r) => shownKeys.has(r.key)),
+    shownCount: shownKeys.size,
+    freshCount: fresh.length,
+    nextSeen: [...nextSeen],
+  };
 }

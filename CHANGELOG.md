@@ -2,6 +2,16 @@
 
 All notable changes to Strap. Versions follow [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **`strap evaluate --digest`** — a self-initiated, anti-overload digest: surfaces only proposals
+  that are **new since last time**, capped at `--top N`, and remembers what it already showed you in
+  a committed `.strap/evaluate-seen.json` so it never re-nags. Monthly
+  `.github/workflows/evaluate-digest.yml` opens a single GitHub issue — only when there's something
+  new — and commits the seen-state. Proactive without alert-fatigue.
+
 ## [0.2.0] — 2026-07
 
 Design-system rails grew from "block off-spec values" to "watch the component library over time."

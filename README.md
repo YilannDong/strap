@@ -451,6 +451,15 @@ go to the job summary. So the noticing happens on its own, right where you're re
 and decide. Flags: `--since <ref>` scopes the search for *new* patterns to what changed (retirement
 still measures the whole codebase); `--md` emits Markdown for the comment / summary.
 
+**It can tell you first — without overloading you.** `strap evaluate --digest` surfaces **only
+what's new since last time** and *remembers what it already showed you* — a committed
+`.strap/evaluate-seen.json` means it never re-nags about the same component. The monthly
+`.github/workflows/evaluate-digest.yml` runs it and opens **one GitHub issue** — but only when
+there's genuinely something new (ranked, capped at `--top N`, deferring the rest to next time). That's
+proactive without alert-fatigue: a quiet monthly digest you can ignore, not a stream of pings. (And
+remember the design guard: retirement is *low-usage*, not *low-activity* — a stable component
+untouched for months is not "dead," so it won't cry wolf about one.)
+
 **How the temporal signals work:** Strap dates last use with `git log -1 -G'<Component'` (last commit
 whose diff touched a usage) and counts recent activity with `git log --since -G'<Component'` (the
 rolling `windowMonths` window). Git is the one impure corner

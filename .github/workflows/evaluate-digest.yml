@@ -1,0 +1,46 @@
+name: evaluate-digest
+
+# Monthly self-initiated digest: Strap tells you what's new — barely-used
+# components, recurring patterns worth promoting — as a single GitHub issue,
+# ONLY when there's something you haven't already been shown. A committed
+# seen-state (.strap/evaluate-seen.json) means it never repeats itself.
+on:
+  schedule:
+    - cron: '0 9 1 * *' # 09:00 UTC, 1st of each month
+  workflow_dispatch:
+
+permissions:
+  contents: write # commit the seen-state so the digest doesn't repeat
+  issues: write # open the digest issue
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history for recency dating
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build the digest (only what's new since last time)
+        run: node scripts/strap.mjs evaluate --digest --md --top 10 > digest.md
+
+      - name: Open an issue if there's something new
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('digest.md', 'utf8');
+            if (body.includes('No new proposals')) { core.info('Nothing new — no issue.'); return; }
+            const { owner, repo } = context.repo;
+            const date = new Date().toISOString().slice(0, 10);
+            await github.rest.issues.create({ owner, repo, title: `Strap lifecycle digest — ${date}`, body });
+
+      - name: Persist the seen-state (so the digest never repeats itself)
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .strap/evaluate-seen.json
+          git commit -m 'chore: strap digest seen-state' && git push || echo 'nothing to persist'
