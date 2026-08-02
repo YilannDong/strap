@@ -108,6 +108,12 @@ hook keeps the code bound to it:
 
 The Figma value, the token, and the code can't drift apart — that's the loop.
 
+> **Detection is deterministic; resolution is yours.** When a blocked value maps to an existing
+> token, Claude just binds it. When it's a genuine decision — a value with **no** matching token, or
+> something that looks like a **new component** — Claude pauses and asks you: fold into the nearest
+> existing token/component, add a new token, or `strap scaffold` a new component. The gate always
+> catches; *how* to resolve stays a human call. (See **When the hook blocks you** in `CLAUDE.md`.)
+
 ## Full example: Claude Code → Figma
 
 The loop runs both ways. Strap can push an on-spec component **into** Figma — and it lands as
