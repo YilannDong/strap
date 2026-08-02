@@ -426,10 +426,11 @@ Thresholds live under `evaluate` in `strap.config.json` (`promoteMin` 3, `retire
 `minFootprint` 3, `windowMonths` 6).
 
 **Runs itself, after each sprint.** `.github/workflows/evaluate.yml` runs it automatically — on every
-PR scoped to *what that PR ships* (`--since` the base branch), plus a weekly full sweep — and posts
-the proposals to the run's **job summary**. So the noticing happens on its own; you just read and
-decide. Flags: `--since <ref>` scopes the search for *new* patterns to what changed (retirement still
-measures the whole codebase); `--md` emits Markdown for the summary / a PR comment.
+PR scoped to *what that PR ships* (`--since` the base branch), plus a weekly full sweep. On a PR it
+posts the proposals as a **single sticky comment** (updated in place, never piled up); scheduled runs
+go to the job summary. So the noticing happens on its own, right where you're reviewing; you just read
+and decide. Flags: `--since <ref>` scopes the search for *new* patterns to what changed (retirement
+still measures the whole codebase); `--md` emits Markdown for the comment / summary.
 
 **How the temporal signals work:** Strap dates last use with `git log -1 -G'<Component'` (last commit
 whose diff touched a usage) and counts recent activity with `git log --since -G'<Component'` (the
@@ -473,10 +474,10 @@ remove) are still deferred.
 
 **Exploring (not built yet):**
 
-- 🔭 **Lifecycle — remaining** — the CI auto-trigger, PR-scoped scan, and rolling "uses in last N
-  months" window all ship now; still open: posting the report as a PR *comment* (not just the job
-  summary), and optionally acting on an approved proposal (scaffold the promoted component / remove
-  the retired one) — the one step that crosses from "propose" into "act."
+- 🔭 **Lifecycle — the last step** — CI auto-trigger, PR-scoped scan, rolling-window recency, and a
+  sticky PR comment all ship now. The only piece left is **acting on an approved proposal** (scaffold
+  the promoted component / remove the retired one) — the one step that crosses from *propose* into
+  *act*, and so wants a deliberate design (it changes the human-stays-editor division of labor).
 - 🔭 **Tighter Figma ↔ code round-trips** — richer bidirectional sync (Code Connect publish on any
   plan, continuous drift detection between canvas and code).
 - 🔭 **Deeper Figma dedup** — the current radar is a conservative first pass; per-element AST-grade
