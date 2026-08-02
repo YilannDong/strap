@@ -26,6 +26,7 @@ node scripts/strap.mjs validate <file>  # validate specific files
 node scripts/strap.mjs tokens           # generate src/styles/tokens.css from tokens.json
 node scripts/strap.mjs figma-audit      # duplicate radar for the Figma canvas (run strap-figma-audit skill first)
 node scripts/strap.mjs evaluate         # component-lifecycle radar: propose promotions + retirements
+node scripts/strap.mjs scaffold <Name> --tokens <list>  # generate a token-bound starter component
 node scripts/strap.mjs init             # scaffold config + .strap/ artifacts
 ```
 

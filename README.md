@@ -425,6 +425,19 @@ It's **advisory and never fails a build** — Strap proposes, you decide (same m
 Thresholds live under `evaluate` in `strap.config.json` (`promoteMin` 3, `retireMax` 1,
 `minFootprint` 3, `windowMonths` 6).
 
+**Acting on a proposal — `strap scaffold`.** When you approve a *promotion*, Strap can turn it into a
+token-bound **starter component** — the one step that moves from proposing to doing, kept deliberately
+narrow so you stay the editor:
+
+```bash
+node scripts/strap.mjs scaffold Callout --tokens color.warn,color.warnInk,radius.card --register
+```
+
+It writes a **new** `Callout.tsx` + `Callout.css` (bound to `var(--warn)` etc., never raw values),
+optionally registers it so future reuse is enforced — and **that's all**. It never overwrites files,
+edits call-sites, or removes retired components; adopting the stub and deleting old code stay your
+call. By construction the generated CSS is on-spec (all `var()`), so it can't produce off-spec output.
+
 **Runs itself, after each sprint.** `.github/workflows/evaluate.yml` runs it automatically — on every
 PR scoped to *what that PR ships* (`--since` the base branch), plus a weekly full sweep. On a PR it
 posts the proposals as a **single sticky comment** (updated in place, never piled up); scheduled runs
@@ -474,10 +487,12 @@ remove) are still deferred.
 
 **Exploring (not built yet):**
 
-- 🔭 **Lifecycle — the last step** — CI auto-trigger, PR-scoped scan, rolling-window recency, and a
-  sticky PR comment all ship now. The only piece left is **acting on an approved proposal** (scaffold
-  the promoted component / remove the retired one) — the one step that crosses from *propose* into
-  *act*, and so wants a deliberate design (it changes the human-stays-editor division of labor).
+- ✅ **Lifecycle — act on a proposal** — `strap scaffold` turns an approved promotion into a
+  token-bound starter component (new files only; never overwrites, edits call-sites, or deletes).
+  Deliberately scaffold-only — the human adopts it and removes old code.
+- 🔭 **Fuller automation (by choice, not yet built)** — auto-rewriting call-sites to a new component
+  and removing retired ones would cross from *propose* into *act at scale*; kept out on purpose so the
+  deterministic core stays trustworthy and the human stays the editor.
 - 🔭 **Tighter Figma ↔ code round-trips** — richer bidirectional sync (Code Connect publish on any
   plan, continuous drift detection between canvas and code).
 - 🔭 **Deeper Figma dedup** — the current radar is a conservative first pass; per-element AST-grade
