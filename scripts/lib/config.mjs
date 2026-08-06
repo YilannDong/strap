@@ -43,6 +43,7 @@ const DEFAULTS = {
     duplicateComponent: 'warn', // CSS rule whose token footprint matches a registry component (advisory)
     figmaDuplicateComponent: 'warn', // Figma raw frame that matches a registry component (advisory)
     figmaDuplicateFrame: 'warn', // two+ near-identical raw frames that should be one component (advisory)
+    figmaRawValue: 'warn', // Figma frame using a hardcoded color not bound to a Variable (advisory)
   },
   // Values that are always allowed even if they look "raw".
   allow: {

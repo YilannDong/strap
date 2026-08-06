@@ -3,6 +3,7 @@
 // the Figma MCP) + the component registry, flag look-alike / duplicate frames.
 // Pure + offline: the skill does all MCP I/O, this just fingerprints & compares.
 import { canonFromConsumes, matchFootprint, DUP_MIN_CONSUMES } from './fingerprint.mjs';
+import { normalizeHex } from './config.mjs';
 
 // Figma-specific: two raw frames are "the same thing" when their structure matches
 // and their token footprints substantially overlap.
@@ -116,6 +117,28 @@ export function auditFrames(frames, cfg) {
       push('figmaDuplicateFrame', loc(rep),
         `${members.length} near-identical frames (${shown}${more}) share the same structure and tokens but aren't one component. Componentize to dedupe.`,
         null);
+    }
+  }
+
+  // --- 3. figmaRawValue: a frame using a hardcoded color not bound to a Variable.
+  //     The Figma analog of the code hook's rawHex rule — closes the "is every value
+  //     on-token?" gap the duplicate radar doesn't cover. Advisory (warn). Needs the
+  //     skill to capture each frame's `rawColors` (fills/strokes not bound to a var).
+  if (sev(cfg, 'figmaRawValue') !== 'off') {
+    const allow = new Set((cfg.allow?.colors || []).map((c) => normalizeHex(c)));
+    for (const frame of frames || []) {
+      const raws = [...new Set((frame.rawColors || []).map((c) => normalizeHex(c)))]
+        .filter((c) => c.startsWith('#') && !allow.has(c));
+      if (!raws.length) continue;
+      const mapped = raws.map((hex) => {
+        const tok = (cfg.suggestByHex && cfg.suggestByHex.get(hex)) || (cfg.colorByHex && cfg.colorByHex.get(hex));
+        return tok ? `${hex} → ${tok}` : hex;
+      });
+      const fix = raws.map((h) => (cfg.suggestByHex && cfg.suggestByHex.get(h)) || (cfg.colorByHex && cfg.colorByHex.get(h))).find(Boolean) || null;
+      const anyToken = raws.some((hex) => cfg.colorByHex && cfg.colorByHex.has(hex));
+      push('figmaRawValue', loc(frame),
+        `Frame "${frame.name}" uses ${raws.length} raw color${raws.length === 1 ? '' : 's'} not bound to a Variable (${mapped.slice(0, 3).join(', ')}${raws.length > 3 ? ', …' : ''}). Bind ${anyToken ? 'to the matching token' : 'to a DS Variable'}.`,
+        fix);
     }
   }
 

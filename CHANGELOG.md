@@ -2,6 +2,16 @@
 
 All notable changes to Strap. Versions follow [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **`figmaRawValue` rule** — the Figma-side token-compliance check: `strap figma-audit` now flags
+  frames using a **hardcoded color not bound to a Variable** (the canvas analog of the code hook's
+  raw-hex block), naming the matching token when one exists. Closes the "is every value on-token?"
+  gap the duplicate radar didn't cover. Advisory (`warn`); the `strap-figma-audit` skill captures
+  each frame's `rawColors`.
+
 ## [0.2.0] — 2026-07
 
 Design-system rails grew from "block off-spec values" to "watch the component library over time."

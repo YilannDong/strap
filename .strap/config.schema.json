@@ -18,7 +18,8 @@
         "unlinkedComponent": { "enum": ["error", "warn", "off"] },
         "duplicateComponent": { "enum": ["error", "warn", "off"] },
         "figmaDuplicateComponent": { "enum": ["error", "warn", "off"] },
-        "figmaDuplicateFrame": { "enum": ["error", "warn", "off"] }
+        "figmaDuplicateFrame": { "enum": ["error", "warn", "off"] },
+        "figmaRawValue": { "enum": ["error", "warn", "off"] }
       }
     },
     "allow": {

@@ -49,6 +49,26 @@ test('does NOT cluster frames with different structure', () => {
 });
 
 test('both figma rules can be turned off via config', () => {
-  const off = { figmaDuplicateComponent: 'off', figmaDuplicateFrame: 'off' };
+  const off = { figmaDuplicateComponent: 'off', figmaDuplicateFrame: 'off', figmaRawValue: 'off' };
   assert.equal(audit([rawCard], off).length, 0);
+});
+
+// --- figmaRawValue: on-canvas token compliance ------------------------------
+test('flags a raw color that matches a token, and suggests the token', () => {
+  const v = audit([{ id: '5:1', name: 'Hero', type: 'FRAME', rawColors: ['#2563EB'] }]).find((x) => x.rule === 'figmaRawValue');
+  assert.ok(v, 'expected a figmaRawValue finding');
+  assert.equal(v.severity, 'warn');
+  assert.match(v.message, /not bound to a Variable/);
+  assert.equal(v.fix, 'blue'); // #2563EB is the brand token
+});
+
+test('flags an off-system raw color with no matching token', () => {
+  const v = audit([{ id: '5:2', name: 'Odd', type: 'FRAME', rawColors: ['#123456'] }]).find((x) => x.rule === 'figmaRawValue');
+  assert.ok(v);
+  assert.equal(v.fix, null);
+});
+
+test('does NOT flag a frame whose values are all bound (no rawColors)', () => {
+  const clean = { id: '5:3', name: 'Clean', type: 'FRAME', tokens: ['color.white', 'color.line'], rawColors: [] };
+  assert.ok(!rules([clean]).includes('figmaRawValue'));
 });

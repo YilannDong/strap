@@ -12,7 +12,8 @@
     "unlinkedComponent": "error",
     "duplicateComponent": "warn",
     "figmaDuplicateComponent": "warn",
-    "figmaDuplicateFrame": "warn"
+    "figmaDuplicateFrame": "warn",
+    "figmaRawValue": "warn"
   },
   "allow": {
     "colors": ["transparent", "currentColor", "inherit", "none"],

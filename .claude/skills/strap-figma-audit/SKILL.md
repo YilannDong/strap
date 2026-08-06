@@ -40,6 +40,9 @@ For each candidate frame, `get_design_context(nodeId)` and extract:
 - **bound variables / styles** → map each to a token name using `.strap/tokens.json`
   (a color/radius/shadow/font variable → `color.line`, `radius.card`, `shadow.md`, `font.body`…).
   These become the frame's `tokens` array in canonical `group.leaf` form.
+- **raw (unbound) colors** → any fill/stroke that's a hardcoded hex **not** bound to a Variable.
+  Collect these into the frame's `rawColors` array (`["#00254A", …]`). The `figmaRawValue` rule
+  flags them — the Figma analog of the code hook's raw-hex block.
 
 **Cap the work.** Enrich at most ~60 candidate frames per run to respect Figma rate limits. If
 there are more, process the largest/top-level ones first and **`log` how many were skipped** —
@@ -54,12 +57,14 @@ Write `.strap/figma-frames.json` (overwrite). Shape:
     { "id": "1:8", "name": "Checkout card", "page": "Page 1", "type": "FRAME",
       "componentId": null, "width": 300, "height": 145,
       "children": [ { "type": "TEXT", "name": "CHECKOUT" }, { "type": "FRAME", "name": "Button / primary" } ],
-      "tokens": ["color.white", "color.line", "radius.card", "shadow.md"] }
+      "tokens": ["color.white", "color.line", "radius.card", "shadow.md"],
+      "rawColors": ["#00254A"] }
   ]
 }
 ```
 - `type`: `FRAME` | `INSTANCE` | `COMPONENT`. Set `componentId` when `INSTANCE`.
 - `tokens`: canonical `group.leaf` keys from bound variables — leave empty if a frame binds none.
+- `rawColors`: hardcoded hex fills/strokes **not** bound to a Variable — leave empty if all bound.
 - Never invent tokens; if a variable is unresolved, omit it.
 
 ## Step 4 — run the engine

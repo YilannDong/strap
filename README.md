@@ -389,7 +389,7 @@ and writes `.strap/figma-frames.json`. The deterministic engine then audits that
 node scripts/strap.mjs figma-audit          # reads .strap/figma-frames.json
 ```
 
-Two advisory (`warn`) rules:
+Three advisory (`warn`) rules:
 
 - **`figmaDuplicateComponent`** — a raw frame whose token footprint matches a registry component but
   that was never made an **instance** (instances/masters are skipped, like the CSS name-skip):
@@ -402,6 +402,12 @@ Two advisory (`warn`) rules:
 
 - **`figmaDuplicateFrame`** — clusters of near-identical raw frames (same structure + tokens) that
   should be one component: *"2 near-identical frames … componentize to dedupe."*
+
+- **`figmaRawValue`** — a frame using a hardcoded color **not bound to a Variable** — the Figma analog
+  of the code hook's raw-hex block, so the canvas gets an "is every value on-token?" check too. When
+  the raw color matches a known token it names it: *"uses 2 raw colors not bound to a Variable
+  (#2563eb → blue, #123456). Bind to the matching token."* (Needs the skill to capture each frame's
+  `rawColors`.)
 
 **Honest limits:** it's advisory + heuristic (same trade-off as the code radar); instance detection
 depends on what `get_design_context` exposes (ambiguous nodes are treated as raw frames, so it can
