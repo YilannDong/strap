@@ -7,14 +7,15 @@
 [![ci](https://github.com/YilannDong/strap/actions/workflows/ci.yml/badge.svg)](https://github.com/YilannDong/strap/actions/workflows/ci.yml)
 
 **An enforcement layer for Claude Code + Figma.**
-4 skills + a blocking hook that keep AI-generated UI on your Design System rails — tokens stay
-bound, components stay reusable, and off-spec writes are blocked before they land.
+6 skills + a hook that keep AI-generated UI on your Design System rails. Literal values and
+unlinked components are **blocked before they land**; heuristic findings like duplicate
+look-alikes **warn** instead, because a guess shouldn't stop your work.
 
 **[Live demo →](https://YilannDong.github.io/strap/)** · the no-build component gallery.
 
-Strap is inspired by [claude2figma](https://github.com/senlindesign/claude2figma) but adds a
+Strap is inspired by [claude2figma](https://github.com/senlindesign/claude2figma) but adds
 real teeth: a zero-dependency **validation engine** and a **PostToolUse hook that actually blocks
-off-spec writes** — enforcement, not just instructions to the model.
+off-spec values** — enforcement, not just instructions to the model.
 
 ---
 
@@ -65,7 +66,7 @@ Be honest with yourself before adopting it:
 | Artifacts | Token Map / Registry (described) | **Machine-readable** `.strap/tokens.json`, `registry.json`, `code-connect.json` |
 | Config | — | `strap.config.json` — per-rule severity (`error`/`warn`/`off`) |
 
-## The 4 skills
+## The 6 skills
 
 - **strap-preflight** — sync Figma → build the local DS cache (Token Map, Component Registry,
   Code Connect map) and verify the rails are live. *Run first.*
@@ -75,6 +76,10 @@ Be honest with yourself before adopting it:
   literals.
 - **strap-intake** — turn a screenshot/URL/description into a token-aware Design Brief before
   building, so downstream work is already on-spec.
+- **strap-figma-audit** — the duplicate radar for the canvas. Walks the Figma file via the MCP and
+  flags raw frames that are really a library component, plus clusters of near-identical frames.
+- **strap-figma-merge** — applies a merge plan: screenshots the frame, reads the component's real
+  properties, proposes the prop map, and **asks before writing**.
 
 ## How it works
 
@@ -90,6 +95,56 @@ The scanner (`scripts/lib/scan.mjs`) flags: hardcoded hex that duplicates or mis
 `rgb()/rgba()` literals, fonts outside the type system, spacing/radius off the scale, and local
 re-declaration of a registry component. Each rule's severity (`error` blocks, `warn` advises,
 `off` disables) is set in `strap.config.json`.
+
+## The drift report
+
+Terminal output is fine for whoever ran the command and useless for everyone else.
+
+```bash
+node scripts/strap.mjs audit --html report.html
+```
+
+<p align="center">
+  <img src="docs/report.png" alt="Strap drift report — findings grouped by rule with a decision per finding" width="860">
+</p>
+
+One self-contained page, no external assets. Findings are grouped by rule, so a hundred `rawHex`
+hits read as one decision rather than a hundred. Each finding offers the actions that make sense
+for *that* rule — bind to the token, add a new token, merge into the component, create a new one —
+and every one of them can be dismissed. **Copy decisions for Claude Code** emits a block you paste
+back, and Claude does the work.
+
+When a Figma snapshot exists, `audit --html` folds the canvas findings in, so one report covers
+both surfaces.
+
+## Human in the loop, by design
+
+Strap is deterministic about **detection** and deliberately human about **resolution**.
+
+**Deterministic rules block; heuristic ones warn.** The hook exits `2` on an `error` — Claude Code
+stops the write and hands the message back to the model. On a `warn` it exits `0`: the write
+lands, with a note to run `strap audit`.
+
+| ⛔ Blocks the write | ⚠️ Warns only |
+|---|---|
+| `rawHex` · `rawRgb` · `rawFont` | `offScaleSpacing` · `offScaleRadius` |
+| `unlinkedComponent` | `duplicateComponent` |
+| | `figmaDuplicateComponent` · `figmaDuplicateFrame` |
+
+A raw hex is unambiguous, so it blocks. "This div might be a Card" is a guess at 60% token
+overlap — blocking on that would stop real work over a heuristic. Severities are per-project in
+`strap.config.json`; raise a radar to `error` if you want it enforced.
+
+- **One right answer → no question.** A raw hex that maps to an existing token is just bound.
+- **A real decision → Strap stops and asks.** A value with no token, a frame that might be a new
+  component, a merge that would delete work — those are design calls, and they stay yours.
+
+`strap merge` is the clearest case. The engine plans the merge and writes
+`.strap/merge-plan.json`; it never touches Figma. The **strap-figma-merge** skill shows you the
+frame, proposes a prop mapping it admits is a guess, and names what the merge would *cost* —
+tokens the frame uses that the component doesn't are reported as **lost** before you confirm.
+
+A merge button that silently drops a token is worse than no button.
 
 ## Full example: Figma → code
 
@@ -203,7 +258,9 @@ The four skills cover the rest of the loop:
 ### ③ Sweep the whole repo (when you want)
 
 ```bash
-node scripts/strap.mjs audit       # validate everything against the DS
+node scripts/strap.mjs audit                      # validate everything against the DS
+node scripts/strap.mjs audit --html report.html   # …and write it as a shareable visual report
+node scripts/strap.mjs merge <frameId> --into "Card"  # plan a canvas merge (apply via the skill)
 npm test                            # run the rule tests (Node 18+)
 ```
 
@@ -489,6 +546,14 @@ remove) are still deferred.
   (recurring patterns → components) and **retirements** (barely-used **or stale** components, dated
   from git history). Strap surfaces, the human decides — see
   **[Component lifecycle](#component-lifecycle-strap-evaluate)**.
+- ✅ **Visual drift report** — `audit --html` renders findings as a self-contained page with a
+  decision per finding, covering both the code and canvas surfaces — see
+  **[The drift report](#the-drift-report)**.
+- ✅ **Merge planning** — `strap merge <frameId> --into "<Component>"` plans the swap offline and
+  names what it would cost; the **strap-figma-merge** skill applies it behind a confirmation.
+- ⏳ **`strap report --serve`** — the report writes to disk, so acting on a decision still needs a
+  copy-paste into Claude Code. A local server would let a click apply directly. The confirmation
+  step before a destructive change stays either way.
 - The turn-key bidirectional runbook is in **[docs/figma-roundtrip.md](docs/figma-roundtrip.md)**.
 
 **Exploring (not built yet):**

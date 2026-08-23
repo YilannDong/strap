@@ -1,6 +1,6 @@
 {
   "name": "strap",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An enforcement layer for Claude Code + Figma — keeps AI on your Design System rails, from blocking off-spec values to watching the component library over time.",
   "type": "module",
   "bin": { "strap": "scripts/strap.mjs" },

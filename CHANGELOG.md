@@ -2,6 +2,46 @@
 
 All notable changes to Strap. Versions follow [SemVer](https://semver.org/).
 
+## [0.3.0] — 2026-08
+
+Findings became something you can *share* and *act on*, not just read in a terminal.
+
+### Added
+
+- **Visual drift report** — `strap audit --html report.html` renders the same findings as a
+  self-contained page: grouped by rule, colour swatches on raw values, and a decision per finding
+  that emits a block to paste back into Claude Code. `audit --html` folds in the Figma snapshot
+  when one exists, so a single report covers both surfaces. Thumbnails are opt-in — the engine
+  can't call Figma, so it inlines any PNGs the `strap-figma-audit` skill left in
+  `.strap/figma-thumbs/`. Every finding is dismissable; a report you can't dismiss becomes noise.
+  (`scripts/lib/html-report.mjs`)
+- **Merge planning** — `strap merge <frameId> --into "<Component>"` turns "this raw frame is really
+  the Card component" into an explicit, reviewable plan at `.strap/merge-plan.json`. Pure and
+  offline like the rest of the engine: it decides *what* would happen and what it would **cost** —
+  tokens the frame uses that the component doesn't are reported as lost, non-text children with
+  nowhere to go are flagged, and a match under 60% is called out as weak.
+  (`scripts/lib/merge.mjs`)
+- **`strap-figma-merge` skill** — applies a merge plan through the Figma MCP. Screenshots the frame
+  first, reads the component's real property names live (the registry knows tokens, not props),
+  presents the prop mapping as a correctable guess, and asks with `AskUserQuestion` before writing.
+  Merging deletes the frame, so confirmation is mandatory, not a formality.
+
+### Fixed
+
+- `figma-audit` read its snapshot path positionally, so `figma-audit --html out.html` treated
+  `--html` as the snapshot and failed. Flags and their values are now skipped; the positional form
+  still works.
+
+### Docs
+
+- README: the skills list said **4** and omitted `strap-figma-audit` — it's now **6**, and the
+  phantom `strap-evaluate` skill reference is gone (`evaluate` is a command, not a skill).
+- New **Human in the loop, by design** section: deterministic detection, human resolution — with
+  the block-vs-warn split spelled out per rule.
+- Corrected an overstatement: the intro said "off-spec writes are blocked before they land", which
+  read as though *everything* blocks. Only `error` rules block (`rawHex`, `rawRgb`, `rawFont`,
+  `unlinkedComponent`); the heuristic radars warn by design and the write lands.
+
 ## [0.2.0] — 2026-07
 
 Design-system rails grew from "block off-spec values" to "watch the component library over time."
