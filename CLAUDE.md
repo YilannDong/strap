@@ -44,6 +44,7 @@ node scripts/strap.mjs figma-audit      # duplicate radar for the Figma canvas (
 node scripts/strap.mjs evaluate         # component-lifecycle radar: propose promotions + retirements
 node scripts/strap.mjs scaffold <Name> --tokens <list>  # generate a token-bound starter component
 node scripts/strap.mjs audit --html report.html         # same findings as a shareable visual report
+node scripts/strap.mjs merge <frameId> --into "<Name>"  # plan a canvas merge (apply via strap-figma-merge)
 node scripts/strap.mjs init             # scaffold config + .strap/ artifacts
 ```
 

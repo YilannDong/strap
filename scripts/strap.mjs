@@ -20,6 +20,7 @@ import { scaffoldComponent } from './lib/scaffold.mjs';
 import { isGitRepo, lastUsedDate, recentUses, changedSince } from './lib/git.mjs';
 import { formatFile, formatSummary, formatFigmaFindings, formatEvaluation, formatEvaluationMarkdown } from './lib/report.mjs';
 import { renderHtmlReport } from './lib/html-report.mjs';
+import { planMerge, formatMergePlan } from './lib/merge.mjs';
 
 const cmd = process.argv[2];
 const rest = process.argv.slice(3);
@@ -78,6 +79,45 @@ function writeHtmlReport(cfg, { code = [], figma = [] }, outPath) {
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, html);
   console.log(`Strap: wrote ${relative(cfg.root, target)} (${(Buffer.byteLength(html) / 1024).toFixed(0)} KB)`);
+}
+
+// ---- merge (plan only) -------------------------------------------------------
+// Decides WHAT a merge would do and writes it to .strap/merge-plan.json. Applying it
+// is the strap-figma-merge skill's job — the engine never touches the canvas.
+function mergeCmd() {
+  const cfg = loadConfig();
+  const frameId = rest.find((a) => !a.startsWith('--'));
+  const into = flag('--into');
+  if (!frameId || !into) {
+    console.error('Usage: strap merge <frameId> --into "<Component>" [--out <path>]');
+    process.exit(1);
+  }
+  const snapPath = join(cfg.artifactsDir, 'figma-frames.json');
+  if (!existsSync(snapPath)) {
+    console.error(`Strap: no frame snapshot at ${relative(cfg.root, snapPath)}.\n` +
+      `Run the strap-figma-audit skill first.`);
+    process.exit(1);
+  }
+  const snap = JSON.parse(readFileSync(snapPath, 'utf8'));
+  const frames = Array.isArray(snap) ? snap : (snap.frames || []);
+  const frame = frames.find((f) => f.id === frameId);
+  if (!frame) {
+    console.error(`Strap: no frame "${frameId}" in the snapshot. Known ids: ${frames.map((f) => f.id).join(', ') || '(none)'}`);
+    process.exit(1);
+  }
+  const components = (cfg.registry && cfg.registry.components) || [];
+  const component = components.find((c) => c.name.toLowerCase() === String(into).toLowerCase());
+  if (!component) {
+    console.error(`Strap: no component "${into}" in the registry. Known: ${components.map((c) => c.name).join(', ') || '(none)'}`);
+    process.exit(1);
+  }
+  const plan = planMerge({ frame, component });
+  console.log(formatMergePlan(plan));
+  const out = resolve(cfg.root, flag('--out') || join(cfg.artifactsDir, 'merge-plan.json'));
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, JSON.stringify(plan, null, 2) + '\n');
+  console.log(`\n  plan written to ${relative(cfg.root, out)}`);
+  process.exit(0);
 }
 
 function printResults(results) {
@@ -386,6 +426,8 @@ try {
     evaluateCmd();
   } else if (cmd === 'scaffold') {
     scaffoldCmd();
+  } else if (cmd === 'merge') {
+    mergeCmd();
   } else if (cmd === 'validate') {
     const cfg = loadConfig();
     const files = rest.map((f) => resolve(f));
@@ -425,6 +467,8 @@ Usage:
   strap figma-audit [snap] Duplicate radar for the Figma canvas (.strap/figma-frames.json)
   strap evaluate [opts]    Component-lifecycle radar: propose promotions + retirements
                            opts: --figma <snap>  --since <ref> (scope to what shipped)  --md
+  strap merge <frameId> --into "<Component>"  Plan a canvas merge (writes .strap/merge-plan.json;
+                           applying it is the strap-figma-merge skill's job)
   strap scaffold <Name> --tokens <list>  Generate a token-bound starter component from a proposal
                            opts: --out <dir> (default src/components)  --register
   strap check              Hook mode (reads PostToolUse payload on stdin)`);
