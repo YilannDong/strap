@@ -10,7 +10,7 @@
 //
 // Pure Node, zero dependencies.
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
-import { join, resolve, relative, extname } from 'node:path';
+import { join, resolve, relative, extname, dirname, basename } from 'node:path';
 import { loadConfig, findProjectRoot } from './lib/config.mjs';
 import { importDesignSystem } from './lib/import.mjs';
 import { scanFile, maxSeverity, SEV_RANK } from './lib/scan.mjs';
@@ -19,9 +19,14 @@ import { evaluate, resolveCodeName } from './lib/evaluate.mjs';
 import { scaffoldComponent } from './lib/scaffold.mjs';
 import { isGitRepo, lastUsedDate, recentUses, changedSince } from './lib/git.mjs';
 import { formatFile, formatSummary, formatFigmaFindings, formatEvaluation, formatEvaluationMarkdown } from './lib/report.mjs';
+import { renderHtmlReport } from './lib/html-report.mjs';
+import { planMerge, formatMergePlan } from './lib/merge.mjs';
 
 const cmd = process.argv[2];
 const rest = process.argv.slice(3);
+
+// `--flag value` lookup, shared by every subcommand.
+const flag = (n) => { const i = rest.indexOf(n); return i >= 0 ? rest[i + 1] : null; };
 
 const VALID_EXT = new Set(['.js', '.jsx', '.ts', '.tsx', '.css', '.scss', '.sass', '.less', '.vue', '.svelte']);
 
@@ -54,6 +59,65 @@ function validateFiles(files, cfg) {
     if (violations.length) results.push({ file: relative(cfg.root, f), violations });
   }
   return results;
+}
+
+// --html <path>: write the visual report next to the terminal output. Thumbnails are
+// picked up from .strap/figma-thumbs/<nodeId>.png when the figma-audit skill left them.
+function writeHtmlReport(cfg, { code = [], figma = [] }, outPath) {
+  const thumbs = {};
+  const dir = resolve(cfg.artifacts || resolve(cfg.root, '.strap'), 'figma-thumbs');
+  if (existsSync(dir)) {
+    for (const f of readdirSync(dir)) {
+      if (!/\.(png|jpg|jpeg)$/i.test(f)) continue;
+      const id = f.replace(/\.[^.]+$/, '').replace(/-/g, ':');
+      const mime = /\.png$/i.test(f) ? 'image/png' : 'image/jpeg';
+      thumbs[id] = `data:${mime};base64,${readFileSync(resolve(dir, f)).toString('base64')}`;
+    }
+  }
+  const html = renderHtmlReport({ code, figma, thumbs, project: basename(cfg.root) });
+  const target = resolve(cfg.root, outPath);
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, html);
+  console.log(`Strap: wrote ${relative(cfg.root, target)} (${(Buffer.byteLength(html) / 1024).toFixed(0)} KB)`);
+}
+
+// ---- merge (plan only) -------------------------------------------------------
+// Decides WHAT a merge would do and writes it to .strap/merge-plan.json. Applying it
+// is the strap-figma-merge skill's job — the engine never touches the canvas.
+function mergeCmd() {
+  const cfg = loadConfig();
+  const frameId = rest.find((a) => !a.startsWith('--'));
+  const into = flag('--into');
+  if (!frameId || !into) {
+    console.error('Usage: strap merge <frameId> --into "<Component>" [--out <path>]');
+    process.exit(1);
+  }
+  const snapPath = join(cfg.artifactsDir, 'figma-frames.json');
+  if (!existsSync(snapPath)) {
+    console.error(`Strap: no frame snapshot at ${relative(cfg.root, snapPath)}.\n` +
+      `Run the strap-figma-audit skill first.`);
+    process.exit(1);
+  }
+  const snap = JSON.parse(readFileSync(snapPath, 'utf8'));
+  const frames = Array.isArray(snap) ? snap : (snap.frames || []);
+  const frame = frames.find((f) => f.id === frameId);
+  if (!frame) {
+    console.error(`Strap: no frame "${frameId}" in the snapshot. Known ids: ${frames.map((f) => f.id).join(', ') || '(none)'}`);
+    process.exit(1);
+  }
+  const components = (cfg.registry && cfg.registry.components) || [];
+  const component = components.find((c) => c.name.toLowerCase() === String(into).toLowerCase());
+  if (!component) {
+    console.error(`Strap: no component "${into}" in the registry. Known: ${components.map((c) => c.name).join(', ') || '(none)'}`);
+    process.exit(1);
+  }
+  const plan = planMerge({ frame, component });
+  console.log(formatMergePlan(plan));
+  const out = resolve(cfg.root, flag('--out') || join(cfg.artifactsDir, 'merge-plan.json'));
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, JSON.stringify(plan, null, 2) + '\n');
+  console.log(`\n  plan written to ${relative(cfg.root, out)}`);
+  process.exit(0);
 }
 
 function printResults(results) {
@@ -208,7 +272,15 @@ Full bidirectional runbook (pull + Code Connect link-back): docs/figma-roundtrip
 // frames. Default snapshot: .strap/figma-frames.json.
 function figmaAuditCmd() {
   const cfg = loadConfig();
-  const snapPath = rest[0] ? resolve(rest[0]) : join(cfg.artifactsDir, 'figma-frames.json');
+  // Positional snapshot path — skip flags and their values so `figma-audit --html x`
+  // doesn't mistake "--html" for the snapshot.
+  const FLAGS_WITH_VALUE = new Set(['--html']);
+  const positional = [];
+  for (let i = 0; i < rest.length; i++) {
+    if (rest[i].startsWith('--')) { if (FLAGS_WITH_VALUE.has(rest[i])) i++; continue; }
+    positional.push(rest[i]);
+  }
+  const snapPath = positional[0] ? resolve(positional[0]) : join(cfg.artifactsDir, 'figma-frames.json');
   if (!existsSync(snapPath)) {
     console.error(`Strap: no frame snapshot at ${relative(cfg.root, snapPath)}.\n` +
       `Run the strap-figma-audit skill first (it walks Figma via the MCP and writes it).`);
@@ -223,6 +295,8 @@ function figmaAuditCmd() {
   const findings = auditFrames(frames, cfg);
   const out = formatFigmaFindings(findings);
   if (out) console.log(out + '\n');
+  const htmlOut = flag('--html');
+  if (htmlOut) writeHtmlReport(cfg, { code: [], figma: findings }, htmlOut);
   const errors = findings.filter((v) => v.severity === 'error').length;
   const warns = findings.filter((v) => v.severity === 'warn').length;
   const parts = [
@@ -294,7 +368,6 @@ function evaluateCmd() {
 // Creates new files only — never edits call-sites or deletes anything.
 function scaffoldCmd() {
   const cfg = loadConfig();
-  const flag = (n) => { const i = rest.indexOf(n); return i >= 0 ? rest[i + 1] : null; };
   const name = rest.find((a) => !a.startsWith('--'));
   const tokensArg = flag('--tokens');
   if (!name || !tokensArg) {
@@ -353,6 +426,8 @@ try {
     evaluateCmd();
   } else if (cmd === 'scaffold') {
     scaffoldCmd();
+  } else if (cmd === 'merge') {
+    mergeCmd();
   } else if (cmd === 'validate') {
     const cfg = loadConfig();
     const files = rest.map((f) => resolve(f));
@@ -364,6 +439,20 @@ try {
     const files = walk(cfg.root, cfg);
     const results = validateFiles(files, cfg);
     const { errors } = printResults(results);
+    const html = flag('--html');
+    if (html) {
+      // Fold in the canvas findings when a snapshot is present, so one report
+      // covers both surfaces rather than making the user run two commands.
+      let figma = [];
+      const snapPath = resolve(cfg.artifacts || resolve(cfg.root, '.strap'), 'figma-frames.json');
+      if (existsSync(snapPath)) {
+        try {
+          const snap = JSON.parse(readFileSync(snapPath, 'utf8'));
+          figma = auditFrames(Array.isArray(snap) ? snap : (snap.frames || []), cfg);
+        } catch { /* a broken snapshot must not fail the code audit */ }
+      }
+      writeHtmlReport(cfg, { code: results, figma }, html);
+    }
     process.exit(errors ? 1 : 0);
   } else {
     console.log(`Strap — Design System enforcement engine
@@ -378,6 +467,8 @@ Usage:
   strap figma-audit [snap] Duplicate radar for the Figma canvas (.strap/figma-frames.json)
   strap evaluate [opts]    Component-lifecycle radar: propose promotions + retirements
                            opts: --figma <snap>  --since <ref> (scope to what shipped)  --md
+  strap merge <frameId> --into "<Component>"  Plan a canvas merge (writes .strap/merge-plan.json;
+                           applying it is the strap-figma-merge skill's job)
   strap scaffold <Name> --tokens <list>  Generate a token-bound starter component from a proposal
                            opts: --out <dir> (default src/components)  --register
   strap check              Hook mode (reads PostToolUse payload on stdin)`);

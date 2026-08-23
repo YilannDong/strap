@@ -22,7 +22,9 @@ CI (`.github/workflows/ci.yml`) runs the tests + audit on Node 18/20/22 and fail
 | `scripts/lib/scan.mjs` | the enforcement rules — **add new rules here** |
 | `scripts/lib/config.mjs` | config + artifact loading |
 | `scripts/lib/import.mjs` | DTCG-ish design-system importer |
-| `.claude/skills/*` | the 4 skills |
+| `scripts/lib/html-report.mjs` | the `--html` visual report renderer |
+| `scripts/lib/merge.mjs` | the merge planner (pure — never touches Figma) |
+| `.claude/skills/*` | the skills (incl. `strap-figma-merge`, which applies a plan) |
 | `.claude/settings.json` | the blocking PostToolUse hook |
 | `examples/starter/` | the open demo DS (Inter, confident blue) |
 
